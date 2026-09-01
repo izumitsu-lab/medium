@@ -490,13 +490,14 @@
             }
         };
 
-        let currentViewIndex = 0;
-        let currentMediaKey = "cm";
-        let currentVolume = 100;
+        // ローカルストレージからの読み込み（保存されていない場合は初期値）
+        let currentViewIndex = parseInt(localStorage.getItem('lab_viewIndex')) || 0;
+        let currentMediaKey = localStorage.getItem('lab_mediaKey') || "cm";
+        let currentVolume = parseInt(localStorage.getItem('lab_mediaVolume')) || 100;
         const mediaVolumes = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
 
-        let currentPcrKey = "prime_star_gxl";
-        let currentPcrVolume = 50;
+        let currentPcrKey = localStorage.getItem('lab_pcrKey') || "prime_star_gxl";
+        let currentPcrVolume = parseInt(localStorage.getItem('lab_pcrVolume')) || 50;
         const pcrVolumes = [];
         for(let v = 50; v <= 250; v += 10) {
             pcrVolumes.push(v);
@@ -510,6 +511,7 @@
                 btn.textContent = mediaDatabase[key].name;
                 btn.onclick = () => {
                     currentMediaKey = key;
+                    localStorage.setItem('lab_mediaKey', key);
                     closeModal('mediaModal');
                     updateView();
                 };
@@ -523,6 +525,7 @@
                 btn.textContent = `${vol} mL`;
                 btn.onclick = () => {
                     currentVolume = vol;
+                    localStorage.setItem('lab_mediaVolume', vol);
                     closeModal('volumeModal');
                     updateView();
                 };
@@ -536,6 +539,7 @@
                 btn.textContent = pcrDatabase[key].shortName;
                 btn.onclick = () => {
                     currentPcrKey = key;
+                    localStorage.setItem('lab_pcrKey', key);
                     closeModal('pcrModal');
                     updateView();
                 };
@@ -549,11 +553,18 @@
                 btn.textContent = `${vol} µL`;
                 btn.onclick = () => {
                     currentPcrVolume = vol;
+                    localStorage.setItem('lab_pcrVolume', vol);
                     closeModal('pcrVolumeModal');
                     updateView();
                 };
                 pcrVolListEl.appendChild(btn);
             });
+
+            // 起動時に前回の画面（左か右か）の位置へスクロールを合わせる
+            const container = document.getElementById("viewsContainer");
+            setTimeout(() => {
+                container.scrollLeft = currentViewIndex * container.clientWidth;
+            }, 50);
 
             setupScrollListener();
             updateView();
@@ -569,6 +580,7 @@
                     const index = Math.round(container.scrollLeft / container.clientWidth);
                     if (index !== currentViewIndex) {
                         currentViewIndex = index;
+                        localStorage.setItem('lab_viewIndex', index);
                         updateDotsAndBar();
                     }
                 }, 50);
