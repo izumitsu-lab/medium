@@ -182,7 +182,7 @@
             border-color: rgba(41, 151, 255, 0.4);
         }
 
-        /* スクロールエリア（上部めり込みを防ぐためパディングを確保） */
+        /* スクロールエリア */
         .list-container-wrapper {
             flex: 1;
             overflow-y: auto;
@@ -350,6 +350,39 @@
             color: var(--text-secondary);
             margin: 2px 0;
             letter-spacing: 1px;
+        }
+
+        /* 選び方ガイド専用の美しいレイアウトカード */
+        .guide-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-bottom: 16px;
+        }
+
+        .guide-card {
+            background-color: #18181d;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .guide-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .guide-desc {
+            font-size: 13px;
+            color: #d1d1d6;
+            line-height: 1.4;
         }
 
         /* 一括リセットバナー */
@@ -628,6 +661,7 @@
 
     <div class="views-container" id="viewsContainer">
         
+        <!-- 1ページ目：培地ビュー -->
         <div class="view-panel" id="panel0">
             <div class="main-display">
                 <div class="display-header">
@@ -648,6 +682,7 @@
             </div>
         </div>
 
+        <!-- 2ページ目：PCRビュー -->
         <div class="view-panel" id="panel1">
             <div class="main-display">
                 <div class="display-header">
@@ -665,6 +700,21 @@
                 <div class="list-container-wrapper">
                     <ul class="ingredient-list" id="pcrIngredientList"></ul>
                     <div class="cycle-container" id="pcrCycleContainer" style="display: none;"></div>
+                    <!-- 酵素の使い分けガイド -->
+                    <div class="guide-container" id="pcrGuideContainer" style="display: none;">
+                        <div class="guide-card">
+                            <span class="guide-title">🧬 プラスミドクローニング（正確性重視）</span>
+                            <span class="guide-desc">高正確性が必要なため <b>PrimeSTAR MAX</b> がベストチョイス。MAXで増えない場合の2ndチョイスとして <b>PrimeSTAR GXL</b> がおすすめ。</span>
+                        </div>
+                        <div class="guide-card">
+                            <span class="guide-title">🎯 遺伝子破壊チェックなど（確実性・コスパ重視）</span>
+                            <span class="guide-desc">とにかくPCRを成功させたい場合は、高成功率を誇る <b>ExPremier</b> が最適。また、コスパを優先したいルーチンPCRには <b>EmeraldAmp</b> もおすすめ。</span>
+                        </div>
+                        <div class="guide-card">
+                            <span class="guide-title">🧪 大腸菌のコロニーPCR</span>
+                            <span class="guide-desc">大腸菌のコロニーPCRには、ゲルにそのままローディングできてコスパも最強な <b>EmeraldAmp</b> が最適。</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="reset-banner" id="pcrResetBanner">
                     <span class="reset-text">チェックが入っています</span>
@@ -673,6 +723,7 @@
             </div>
         </div>
 
+        <!-- 3ページ目：オプションビュー -->
         <div class="view-panel" id="panel2">
             <div class="main-display">
                 <div class="display-header">
@@ -716,6 +767,7 @@
 
     <div class="control-bar" id="controlBar"></div>
 
+    <!-- モーダル各種 -->
     <div class="modal-overlay" id="mediaModal" onclick="outsideClose(event, 'mediaModal')">
         <div class="modal-content">
             <div class="modal-header">培地を選択</div>
@@ -895,6 +947,11 @@
                     { name: "Reverse Primer (10 µM)", amount: 1.0, unit: "µL" },
                     { name: "滅菌水 (dH2O)", amount: 23.0, unit: "µL" }
                 ]
+            },
+            "guide": {
+                shortName: "PCR酵素の使い分け",
+                fullName: "PCR酵素の使い分けガイド",
+                isGuide: true
             }
         };
 
@@ -903,7 +960,8 @@
         let currentVolume = parseInt(localStorage.getItem('lab_mediaVolume')) || 100;
         const mediaVolumes = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
 
-        let currentPcrKey = localStorage.getItem('lab_pcrKey') || "emerald_amp";
+        let storedPcrKey = localStorage.getItem('lab_pcrKey');
+        let currentPcrKey = (storedPcrKey && pcrDatabase[storedPcrKey]) ? storedPcrKey : "ex_premier";
         let currentPcrVolume = parseInt(localStorage.getItem('lab_pcrVolume')) || 50;
         let currentPcrMode = "recipe";
         const pcrVolumes = [];
@@ -994,19 +1052,25 @@
             const btnCycle = document.getElementById("btnModeCycle");
             const recipeList = document.getElementById("pcrIngredientList");
             const cycleContainer = document.getElementById("pcrCycleContainer");
+            const guideContainer = document.getElementById("pcrGuideContainer");
             const resetBanner = document.getElementById("pcrResetBanner");
+            const pcr = pcrDatabase[currentPcrKey];
+
+            if (pcr.isGuide) return;
 
             if (mode === 'recipe') {
                 btnRecipe.classList.add("active");
                 btnCycle.classList.remove("active");
                 recipeList.style.display = "flex";
                 cycleContainer.style.display = "none";
+                guideContainer.style.display = "none";
                 checkResetButtonState('pcr');
             } else {
                 btnCycle.classList.add("active");
                 btnRecipe.classList.remove("active");
                 recipeList.style.display = "none";
                 cycleContainer.style.display = "flex";
+                guideContainer.style.display = "none";
                 resetBanner.classList.remove("visible");
             }
         }
@@ -1067,12 +1131,13 @@
                     </button>
                 `;
             } else if (currentViewIndex === 1) {
+                const pcr = pcrDatabase[currentPcrKey];
                 bar.innerHTML = `
                     <button class="trigger-btn" onclick="openModal('pcrModal')">
-                        <span style="font-weight: 700; font-size: 14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${pcrDatabase[currentPcrKey].shortName}</span>
+                        <span style="font-weight: 700; font-size: 14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${pcr.shortName}</span>
                         <span class="arrow-icon">▾</span>
                     </button>
-                    <button class="trigger-btn" onclick="openModal('pcrVolumeModal')">
+                    <button class="trigger-btn" onclick="openModal('pcrVolumeModal')" ${pcr.isGuide ? 'style="opacity: 0.4; pointer-events: none;"' : ''}>
                         <span style="font-weight: 700;">${currentPcrVolume} µL</span>
                         <span class="arrow-icon">▾</span>
                     </button>
@@ -1087,7 +1152,7 @@
         }
 
         function checkResetButtonState(type) {
-            if (type === 'pcr' && currentPcrMode === 'cycle') return;
+            if (type === 'pcr' && (currentPcrMode === 'cycle' || pcrDatabase[currentPcrKey].isGuide)) return;
             const containerId = type === 'media' ? 'ingredientList' : 'pcrIngredientList';
             const bannerId = type === 'media' ? 'mediaResetBanner' : 'pcrResetBanner';
             
@@ -1168,94 +1233,86 @@
 
             // 2. PCRビュー更新
             const pcr = pcrDatabase[currentPcrKey];
-            document.getElementById("displayPcrSub").textContent = "PCR Master Mix";
+            document.getElementById("displayPcrSub").textContent = pcr.isGuide ? "Guide" : "PCR Master Mix";
             document.getElementById("displayPcrName").textContent = pcr.fullName;
             document.getElementById("displayPcrVolume").textContent = `${currentPcrVolume} µL`;
 
-            if (adviceFeatureEnabled) {
-                pcrAdviceBox.textContent = pcr.getAdvice(currentPcrVolume);
-                pcrAdviceBox.classList.add("visible");
-            } else {
-                pcrAdviceBox.classList.remove("visible");
-            }
-
-            document.querySelectorAll("#pcrOptionsList .option-item").forEach(el => {
-                el.classList.toggle('selected', el.textContent === pcr.shortName);
-            });
-            document.querySelectorAll("#pcrVolumeOptionsList .option-item").forEach(el => {
-                el.classList.toggle('selected', el.textContent === `${currentPcrVolume} µL`);
-            });
-
-            // 反応液組成リスト更新
-            const pcrListContainer = document.getElementById("pcrIngredientList");
-            pcrListContainer.innerHTML = "";
-            const pcrRatio = currentPcrVolume / pcr.baseVolume;
-
-            pcr.ingredients.forEach(ing => {
-                const calcAmount = ing.amount * pcrRatio;
-                const formatted = calcAmount >= 10 
-                    ? calcAmount.toFixed(1) 
-                    : calcAmount.toFixed(2).replace(/\.?0+$/, "");
-
-                const li = document.createElement("li");
-                li.className = "ingredient-item";
-                li.onclick = () => {
-                    if (checkFeatureEnabled) {
-                        li.classList.toggle('checked');
-                        checkResetButtonState('pcr');
-                    }
-                };
-                li.innerHTML = `
-                    <span class="ing-name">${ing.name}</span>
-                    <div class="ing-amount-wrapper">
-                        <span class="ing-amount">${formatted}</span>
-                        <span class="ing-unit">${ing.unit}</span>
-                    </div>
-                `;
-                pcrListContainer.appendChild(li);
-            });
-            checkResetButtonState('pcr');
-
-            // サイクル条件コンテナ更新
+            const modeSwitchEl = document.querySelector(".mode-switch-container");
+            const recipeList = document.getElementById("pcrIngredientList");
             const cycleContainer = document.getElementById("pcrCycleContainer");
-            cycleContainer.innerHTML = "";
+            const guideContainer = document.getElementById("pcrGuideContainer");
 
-            let currentGroup = null;
+            if (pcr.isGuide) {
+                modeSwitchEl.style.display = "none";
+                recipeList.style.display = "none";
+                cycleContainer.style.display = "none";
+                guideContainer.style.display = "flex";
+                if (adviceFeatureEnabled) {
+                    pcrAdviceBox.textContent = "💡 実験目的に応じた最適な酵素選びをサポート";
+                    pcrAdviceBox.classList.add("visible");
+                } else {
+                    pcrAdviceBox.classList.remove("visible");
+                }
+            } else {
+                modeSwitchEl.style.display = "grid";
+                if (adviceFeatureEnabled) {
+                    pcrAdviceBox.textContent = pcr.getAdvice(currentPcrVolume);
+                    pcrAdviceBox.classList.add("visible");
+                } else {
+                    pcrAdviceBox.classList.remove("visible");
+                }
 
-            pcr.cycles.forEach(cyc => {
-                if (cyc.type === 'single') {
-                    const div = document.createElement("div");
-                    div.className = "cycle-single-step";
-                    div.innerHTML = `
-                        <div class="cycle-step-left">
-                            <span class="cycle-step-name">${cyc.name}</span>
-                        </div>
-                        <div class="cycle-main-val">
-                            <span>${cyc.temp}</span>
-                            <span class="cycle-time">${cyc.time}</span>
+                if (currentPcrMode === 'recipe') {
+                    recipeList.style.display = "flex";
+                    cycleContainer.style.display = "none";
+                    guideContainer.style.display = "none";
+                    checkResetButtonState('pcr');
+                } else {
+                    recipeList.style.display = "none";
+                    cycleContainer.style.display = "flex";
+                    guideContainer.style.display = "none";
+                    const resetBanner = document.getElementById("pcrResetBanner");
+                    resetBanner.classList.remove("visible");
+                }
+
+                // 反応液組成リストの再構築
+                recipeList.innerHTML = "";
+                const pcrRatio = currentPcrVolume / pcr.baseVolume;
+
+                pcr.ingredients.forEach(ing => {
+                    const calcAmount = ing.amount * pcrRatio;
+                    const formatted = calcAmount >= 10 
+                        ? calcAmount.toFixed(1) 
+                        : calcAmount.toFixed(2).replace(/\.?0+$/, "");
+
+                    const li = document.createElement("li");
+                    li.className = "ingredient-item";
+                    li.onclick = () => {
+                        if (checkFeatureEnabled) {
+                            li.classList.toggle('checked');
+                            checkResetButtonState('pcr');
+                        }
+                    };
+                    li.innerHTML = `
+                        <span class="ing-name">${ing.name}</span>
+                        <div class="ing-amount-wrapper">
+                            <span class="ing-amount">${formatted}</span>
+                            <span class="ing-unit">${ing.unit}</span>
                         </div>
                     `;
-                    cycleContainer.appendChild(div);
-                } else if (cyc.type === 'divider') {
-                    const div = document.createElement("div");
-                    div.className = "cycle-divider";
-                    div.textContent = cyc.text;
-                    cycleContainer.appendChild(div);
-                } else if (cyc.type === 'loop_start') {
-                    currentGroup = document.createElement("div");
-                    currentGroup.className = "cycle-loop-group";
-                    
-                    const badge = document.createElement("div");
-                    badge.className = "cycle-loop-badge";
-                    badge.textContent = cyc.name;
-                    currentGroup.appendChild(badge);
+                    recipeList.appendChild(li);
+                });
+                checkResetButtonState('pcr');
 
-                    cycleContainer.appendChild(currentGroup);
-                } else if (cyc.type === 'loop_step') {
-                    if (currentGroup) {
-                        const stepDiv = document.createElement("div");
-                        stepDiv.className = "cycle-step";
-                        stepDiv.innerHTML = `
+                // サイクル条件の再構築
+                cycleContainer.innerHTML = "";
+                let currentGroup = null;
+
+                pcr.cycles.forEach(cyc => {
+                    if (cyc.type === 'single') {
+                        const div = document.createElement("div");
+                        div.className = "cycle-single-step";
+                        div.innerHTML = `
                             <div class="cycle-step-left">
                                 <span class="cycle-step-name">${cyc.name}</span>
                             </div>
@@ -1264,11 +1321,48 @@
                                 <span class="cycle-time">${cyc.time}</span>
                             </div>
                         `;
-                        currentGroup.appendChild(stepDiv);
+                        cycleContainer.appendChild(div);
+                    } else if (cyc.type === 'divider') {
+                        const div = document.createElement("div");
+                        div.className = "cycle-divider";
+                        div.textContent = cyc.text;
+                        cycleContainer.appendChild(div);
+                    } else if (cyc.type === 'loop_start') {
+                        currentGroup = document.createElement("div");
+                        currentGroup.className = "cycle-loop-group";
+                        
+                        const badge = document.createElement("div");
+                        badge.className = "cycle-loop-badge";
+                        badge.textContent = cyc.name;
+                        currentGroup.appendChild(badge);
+
+                        cycleContainer.appendChild(currentGroup);
+                    } else if (cyc.type === 'loop_step') {
+                        if (currentGroup) {
+                            const stepDiv = document.createElement("div");
+                            stepDiv.className = "cycle-step";
+                            stepDiv.innerHTML = `
+                                <div class="cycle-step-left">
+                                    <span class="cycle-step-name">${cyc.name}</span>
+                                </div>
+                                <div class="cycle-main-val">
+                                    <span>${cyc.temp}</span>
+                                    <span class="cycle-time">${cyc.time}</span>
+                                </div>
+                            `;
+                            currentGroup.appendChild(stepDiv);
+                        }
+                    } else if (cyc.type === 'loop_end') {
+                        currentGroup = null;
                     }
-                } else if (cyc.type === 'loop_end') {
-                    currentGroup = null;
-                }
+                });
+            }
+
+            document.querySelectorAll("#pcrOptionsList .option-item").forEach(el => {
+                el.classList.toggle('selected', el.textContent === pcr.shortName);
+            });
+            document.querySelectorAll("#pcrVolumeOptionsList .option-item").forEach(el => {
+                el.classList.toggle('selected', el.textContent === `${currentPcrVolume} µL`);
             });
 
             updateControlBar();
