@@ -76,7 +76,7 @@
             background-color: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: var(--border-radius);
-            padding: 20px 20px;
+            padding: 18px 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
             flex: 1;
             display: flex;
@@ -90,9 +90,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             border-bottom: 1px solid var(--card-border);
-            padding-bottom: 12px;
+            padding-bottom: 10px;
             gap: 12px;
             flex-shrink: 0;
         }
@@ -114,7 +114,7 @@
         }
 
         .media-title {
-            font-size: 19px;
+            font-size: 18px;
             font-weight: 700;
             letter-spacing: -0.5px;
             color: var(--text-primary);
@@ -136,29 +136,58 @@
             flex-shrink: 0;
         }
 
-        /* アドバイス・コメント表示エリア（ONのときだけ表示） */
+        /* アドバイスコメント表示ボックス */
         .advice-box {
             background-color: rgba(41, 151, 255, 0.08);
             border: 1px solid rgba(41, 151, 255, 0.2);
-            border-radius: 14px;
-            padding: 10px 14px;
-            margin-bottom: 12px;
-            font-size: 13px;
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            font-size: 12px;
             font-weight: 500;
             color: #70b5ff;
-            display: none; /* デフォルト非表示、JSで制御 */
+            display: none;
             flex-shrink: 0;
-            line-height: 1.4;
+            line-height: 1.3;
         }
         .advice-box.visible {
             display: block;
         }
 
-        /* 組成リストコンテナ */
+        /* PCR用の切り替えボタン */
+        .mode-switch-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .mode-btn {
+            background-color: #1c1c20;
+            border: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            border-radius: 12px;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background-color: var(--accent-soft);
+            color: var(--accent-color);
+            border-color: rgba(41, 151, 255, 0.4);
+        }
+
+        /* スクロールエリア（上部めり込みを防ぐためパディングを確保） */
         .list-container-wrapper {
             flex: 1;
             overflow-y: auto;
             min-height: 0;
+            padding-top: 6px;
             padding-right: 2px;
             display: flex;
             flex-direction: column;
@@ -172,12 +201,11 @@
             border-radius: 4px;
         }
 
-        /* 組成リスト */
         .ingredient-list {
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
             padding-bottom: 16px;
         }
 
@@ -202,7 +230,7 @@
 
         .ing-name {
             color: #e5e5ea;
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 500;
             letter-spacing: -0.3px;
             transition: color 0.2s;
@@ -215,7 +243,7 @@
         }
 
         .ing-amount {
-            font-size: 19px;
+            font-size: 18px;
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             letter-spacing: -0.5px;
@@ -224,10 +252,104 @@
         }
 
         .ing-unit {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-secondary);
             font-weight: 600;
             transition: color 0.2s;
+        }
+
+        /* サイクル条件ビューのデザイン */
+        .cycle-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-top: 14px;
+            padding-bottom: 16px;
+        }
+
+        .cycle-loop-group {
+            position: relative;
+            background: rgba(41, 151, 255, 0.04);
+            border: 1px solid rgba(41, 151, 255, 0.2);
+            border-radius: 16px;
+            padding: 16px 12px 12px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .cycle-loop-badge {
+            position: absolute;
+            top: -10px;
+            right: 14px;
+            background: var(--accent-color);
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 10px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(41, 151, 255, 0.4);
+            z-index: 2;
+        }
+
+        .cycle-step {
+            background-color: #1a1a1f;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cycle-step-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .cycle-step-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .cycle-main-val {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .cycle-time {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-color);
+            text-align: right;
+        }
+
+        .cycle-single-step {
+            background-color: #1a1a1f;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cycle-divider {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin: 2px 0;
+            letter-spacing: 1px;
         }
 
         /* 一括リセットバナー */
@@ -290,7 +412,6 @@
             padding: 14px 16px;
             border-radius: 16px;
             border: 1px solid var(--card-border);
-            margin-bottom: 10px;
         }
 
         .option-label-wrapper {
@@ -360,7 +481,7 @@
             display: flex;
             justify-content: center;
             gap: 6px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             flex-shrink: 0;
         }
 
@@ -390,7 +511,7 @@
             border: 1px solid var(--card-border);
             color: var(--text-primary);
             border-radius: 16px;
-            padding: 14px 16px;
+            padding: 12px 16px;
             font-size: 15px;
             font-weight: 700;
             display: flex;
@@ -423,11 +544,12 @@
             -webkit-backdrop-filter: blur(24px);
             display: flex;
             justify-content: center;
-            align-items: flex-end;
+            align-items: center;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             z-index: 1000;
+            padding: 16px;
         }
 
         .modal-overlay.active {
@@ -437,26 +559,26 @@
 
         .modal-content {
             width: 100%;
-            max-width: 460px;
+            max-width: 420px;
             background-color: #16161a;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 28px 28px 0 0;
-            padding: 24px 20px 40px;
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            max-height: 70vh;
+            border-radius: 28px;
+            padding: 22px 20px 24px;
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 80vh;
             overflow-y: auto;
         }
 
         .modal-overlay.active .modal-content {
-            transform: translateY(0);
+            transform: scale(1);
         }
 
         .modal-header {
             font-size: 13px;
             font-weight: 700;
             color: var(--text-secondary);
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             text-align: center;
             letter-spacing: 1px;
             text-transform: uppercase;
@@ -473,7 +595,7 @@
             color: var(--text-primary);
             border: 1px solid rgba(255, 255, 255, 0.04);
             border-radius: 14px;
-            padding: 15px 18px;
+            padding: 14px 18px;
             font-size: 16px;
             font-weight: 600;
             text-align: left;
@@ -498,7 +620,7 @@
         .volume-grid-modal {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            gap: 8px;
         }
     </style>
 </head>
@@ -535,9 +657,14 @@
                     </div>
                     <span class="volume-badge" id="displayPcrVolume">50 µL</span>
                 </div>
+                <div class="mode-switch-container">
+                    <button class="mode-btn active" id="btnModeRecipe" onclick="setPcrMode('recipe')">反応液組成</button>
+                    <button class="mode-btn" id="btnModeCycle" onclick="setPcrMode('cycle')">サイクル条件</button>
+                </div>
                 <div class="advice-box" id="pcrAdviceBox"></div>
                 <div class="list-container-wrapper">
                     <ul class="ingredient-list" id="pcrIngredientList"></ul>
+                    <div class="cycle-container" id="pcrCycleContainer" style="display: none;"></div>
                 </div>
                 <div class="reset-banner" id="pcrResetBanner">
                     <span class="reset-text">チェックが入っています</span>
@@ -622,7 +749,6 @@
             "cm": {
                 name: "CM培地",
                 baseVolume: 100,
-                // 55mmシャーレ1枚あたり約6mL換算のコメント生成関数
                 getAdvice: (vol) => {
                     const count = (vol / 6).toFixed(1);
                     return `💡 55mmシャーレ換算: 約 ${count} 枚分`;
@@ -679,37 +805,26 @@
         };
 
         const pcrDatabase = {
-            "prime_star_gxl": {
-                shortName: "PrimeSTAR GXL",
-                fullName: "PrimeSTAR GXL (Premix)",
-                baseVolume: 50,
-                getAdvice: (vol) => {
-                    return `💡 伸長時間目安: 1kbあたり約1分`;
-                },
-                ingredients: [
-                    { name: "PrimeSTAR GXL DNA Pol.", amount: 1.0, unit: "µL" },
-                    { name: "5x PrimeSTAR Buffer", amount: 10.0, unit: "µL" },
-                    { name: "dNTPs (2.5 mM each)", amount: 4.0, unit: "µL" },
-                    { name: "Forward Primer (10 µM)", amount: 1.0, unit: "µL" },
-                    { name: "Reverse Primer (10 µM)", amount: 1.0, unit: "µL" },
-                    { name: "Template DNA", amount: 1.0, unit: "µL" },
-                    { name: "滅菌水 (dH2O)", amount: 32.0, unit: "µL" }
-                ]
-            },
             "ex_premier": {
                 shortName: "ExPremier",
                 fullName: "ExPremier (Premix)",
                 baseVolume: 50,
                 getAdvice: (vol) => {
-                    return `💡 高感度・長鎖PCR向け`;
+                    return `💡 高成功率を誇るファーストチョイス酵素`;
                 },
+                cycles: [
+                    { type: 'single', name: "初期変性", temp: "94 °C", time: "1 min" },
+                    { type: 'loop_start', name: "30 Cycles" },
+                    { type: 'loop_step', name: "変性", temp: "98 °C", time: "10 sec" },
+                    { type: 'loop_step', name: "アニーリング", temp: "55–60 °C", time: "15 sec" },
+                    { type: 'loop_step', name: "伸長", temp: "68 °C", time: "30 sec / kb" },
+                    { type: 'loop_end' }
+                ],
                 ingredients: [
-                    { name: "ExPremier DNA Polymerase", amount: 1.0, unit: "µL" },
-                    { name: "2x Buffer", amount: 25.0, unit: "µL" },
+                    { name: "Ex Premier DNA Polymerase (2x)", amount: 25.0, unit: "µL" },
                     { name: "Forward Primer (10 µM)", amount: 1.0, unit: "µL" },
                     { name: "Reverse Primer (10 µM)", amount: 1.0, unit: "µL" },
-                    { name: "Template DNA", amount: 1.0, unit: "µL" },
-                    { name: "滅菌水 (dH2O)", amount: 22.0, unit: "µL" }
+                    { name: "滅菌水 (dH2O)", amount: 23.0, unit: "µL" }
                 ]
             },
             "prime_star_max": {
@@ -717,14 +832,47 @@
                 fullName: "PrimeSTAR MAX (Premix)",
                 baseVolume: 50,
                 getAdvice: (vol) => {
-                    return `💡 プルーフリード機能付き高速マスターミックス`;
+                    return `💡 最高レベルの正確性、In-Fusion Cloningにベストマッチ`;
                 },
+                cycles: [
+                    { type: 'loop_start', name: "30–35 Cycles (通常条件: >200ng)" },
+                    { type: 'loop_step', name: "変性", temp: "98 °C", time: "10 sec" },
+                    { type: 'loop_step', name: "アニーリング", temp: "55 °C", time: "5 or 15 sec" },
+                    { type: 'loop_step', name: "伸長", temp: "72 °C", time: "30–60 sec/kb" },
+                    { type: 'loop_end' },
+                    { type: 'divider', text: "もしくは" },
+                    { type: 'loop_start', name: "30–35 Cycles (≦200ng ※あまり増えない)" },
+                    { type: 'loop_step', name: "変性", temp: "98 °C", time: "10 sec" },
+                    { type: 'loop_step', name: "アニーリング", temp: "55 °C", time: "5 or 15 sec" },
+                    { type: 'loop_step', name: "伸長", temp: "72 °C", time: "5 sec/kb" },
+                    { type: 'loop_end' }
+                ],
                 ingredients: [
-                    { name: "PrimeSTAR MAX Premix (2x)", amount: 25.0, unit: "µL" },
+                    { name: "PrimeSTAR Max Premix (2x)", amount: 25.0, unit: "µL" },
                     { name: "Forward Primer (10 µM)", amount: 1.0, unit: "µL" },
                     { name: "Reverse Primer (10 µM)", amount: 1.0, unit: "µL" },
-                    { name: "Template DNA", amount: 1.0, unit: "µL" },
-                    { name: "滅菌水 (dH2O)", amount: 22.0, unit: "µL" }
+                    { name: "滅菌水 (dH2O)", amount: 23.0, unit: "µL" }
+                ]
+            },
+            "prime_star_gxl": {
+                shortName: "PrimeSTAR GXL",
+                fullName: "PrimeSTAR GXL (Premix)",
+                baseVolume: 50,
+                getAdvice: (vol) => {
+                    return `💡 高正確性だがMAXに劣る。GCリッチに強い。`;
+                },
+                cycles: [
+                    { type: 'loop_start', name: "30 Cycles" },
+                    { type: 'loop_step', name: "変性", temp: "98 °C", time: "10 sec" },
+                    { type: 'loop_step', name: "アニーリング", temp: "55 or 60 °C", time: "15 sec" },
+                    { type: 'loop_step', name: "伸長", temp: "68 °C", time: "1 min / kb" },
+                    { type: 'loop_end' }
+                ],
+                ingredients: [
+                    { name: "PrimeSTAR GXL Premix (2x)", amount: 25.0, unit: "µL" },
+                    { name: "Forward Primer (10 µM)", amount: 1.0, unit: "µL" },
+                    { name: "Reverse Primer (10 µM)", amount: 1.0, unit: "µL" },
+                    { name: "滅菌水 (dH2O)", amount: 23.0, unit: "µL" }
                 ]
             },
             "emerald_amp": {
@@ -732,14 +880,20 @@
                 fullName: "EmeraldAmp (Premix)",
                 baseVolume: 50,
                 getAdvice: (vol) => {
-                    return `💡 ダーイレクト電気泳動可能（色素入り）`;
+                    return `💡 コスパ最強。コロニーPCR、ルーチンPCRに。`;
                 },
+                cycles: [
+                    { type: 'loop_start', name: "30 Cycles" },
+                    { type: 'loop_step', name: "変性", temp: "98 °C", time: "10 sec" },
+                    { type: 'loop_step', name: "アニーリング", temp: "55 or 60 °C", time: "30 sec" },
+                    { type: 'loop_step', name: "伸長", temp: "72 °C", time: "1 min / kb" },
+                    { type: 'loop_end' }
+                ],
                 ingredients: [
-                    { name: "EmeraldAmp PCR Master Mix", amount: 25.0, unit: "µL" },
+                    { name: "EmeraldAmp PCR Master Mix (2x)", amount: 25.0, unit: "µL" },
                     { name: "Forward Primer (10 µM)", amount: 1.0, unit: "µL" },
                     { name: "Reverse Primer (10 µM)", amount: 1.0, unit: "µL" },
-                    { name: "Template DNA", amount: 1.0, unit: "µL" },
-                    { name: "滅菌水 (dH2O)", amount: 22.0, unit: "µL" }
+                    { name: "滅菌水 (dH2O)", amount: 23.0, unit: "µL" }
                 ]
             }
         };
@@ -749,8 +903,9 @@
         let currentVolume = parseInt(localStorage.getItem('lab_mediaVolume')) || 100;
         const mediaVolumes = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
 
-        let currentPcrKey = localStorage.getItem('lab_pcrKey') || "prime_star_gxl";
+        let currentPcrKey = localStorage.getItem('lab_pcrKey') || "emerald_amp";
         let currentPcrVolume = parseInt(localStorage.getItem('lab_pcrVolume')) || 50;
+        let currentPcrMode = "recipe";
         const pcrVolumes = [];
         for(let v = 50; v <= 250; v += 10) {
             pcrVolumes.push(v);
@@ -833,6 +988,29 @@
             updateView();
         }
 
+        function setPcrMode(mode) {
+            currentPcrMode = mode;
+            const btnRecipe = document.getElementById("btnModeRecipe");
+            const btnCycle = document.getElementById("btnModeCycle");
+            const recipeList = document.getElementById("pcrIngredientList");
+            const cycleContainer = document.getElementById("pcrCycleContainer");
+            const resetBanner = document.getElementById("pcrResetBanner");
+
+            if (mode === 'recipe') {
+                btnRecipe.classList.add("active");
+                btnCycle.classList.remove("active");
+                recipeList.style.display = "flex";
+                cycleContainer.style.display = "none";
+                checkResetButtonState('pcr');
+            } else {
+                btnCycle.classList.add("active");
+                btnRecipe.classList.remove("active");
+                recipeList.style.display = "none";
+                cycleContainer.style.display = "flex";
+                resetBanner.classList.remove("visible");
+            }
+        }
+
         function toggleCheckFeature() {
             checkFeatureEnabled = document.getElementById("checkFeatureToggle").checked;
             localStorage.setItem('lab_checkFeature', checkFeatureEnabled);
@@ -909,6 +1087,7 @@
         }
 
         function checkResetButtonState(type) {
+            if (type === 'pcr' && currentPcrMode === 'cycle') return;
             const containerId = type === 'media' ? 'ingredientList' : 'pcrIngredientList';
             const bannerId = type === 'media' ? 'mediaResetBanner' : 'pcrResetBanner';
             
@@ -936,7 +1115,6 @@
         }
 
         function updateView() {
-            // アドバイス機能の反映
             const mediaAdviceBox = document.getElementById("mediaAdviceBox");
             const pcrAdviceBox = document.getElementById("pcrAdviceBox");
 
@@ -1008,6 +1186,7 @@
                 el.classList.toggle('selected', el.textContent === `${currentPcrVolume} µL`);
             });
 
+            // 反応液組成リスト更新
             const pcrListContainer = document.getElementById("pcrIngredientList");
             pcrListContainer.innerHTML = "";
             const pcrRatio = currentPcrVolume / pcr.baseVolume;
@@ -1036,6 +1215,61 @@
                 pcrListContainer.appendChild(li);
             });
             checkResetButtonState('pcr');
+
+            // サイクル条件コンテナ更新
+            const cycleContainer = document.getElementById("pcrCycleContainer");
+            cycleContainer.innerHTML = "";
+
+            let currentGroup = null;
+
+            pcr.cycles.forEach(cyc => {
+                if (cyc.type === 'single') {
+                    const div = document.createElement("div");
+                    div.className = "cycle-single-step";
+                    div.innerHTML = `
+                        <div class="cycle-step-left">
+                            <span class="cycle-step-name">${cyc.name}</span>
+                        </div>
+                        <div class="cycle-main-val">
+                            <span>${cyc.temp}</span>
+                            <span class="cycle-time">${cyc.time}</span>
+                        </div>
+                    `;
+                    cycleContainer.appendChild(div);
+                } else if (cyc.type === 'divider') {
+                    const div = document.createElement("div");
+                    div.className = "cycle-divider";
+                    div.textContent = cyc.text;
+                    cycleContainer.appendChild(div);
+                } else if (cyc.type === 'loop_start') {
+                    currentGroup = document.createElement("div");
+                    currentGroup.className = "cycle-loop-group";
+                    
+                    const badge = document.createElement("div");
+                    badge.className = "cycle-loop-badge";
+                    badge.textContent = cyc.name;
+                    currentGroup.appendChild(badge);
+
+                    cycleContainer.appendChild(currentGroup);
+                } else if (cyc.type === 'loop_step') {
+                    if (currentGroup) {
+                        const stepDiv = document.createElement("div");
+                        stepDiv.className = "cycle-step";
+                        stepDiv.innerHTML = `
+                            <div class="cycle-step-left">
+                                <span class="cycle-step-name">${cyc.name}</span>
+                            </div>
+                            <div class="cycle-main-val">
+                                <span>${cyc.temp}</span>
+                                <span class="cycle-time">${cyc.time}</span>
+                            </div>
+                        `;
+                        currentGroup.appendChild(stepDiv);
+                    }
+                } else if (cyc.type === 'loop_end') {
+                    currentGroup = null;
+                }
+            });
 
             updateControlBar();
         }
