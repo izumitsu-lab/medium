@@ -40,7 +40,7 @@
             overflow: hidden;
         }
 
-        /* 画面全体のビューコンテナ（CSS Scroll Snap） */
+        /* 3画面分の横長コンテナ（CSS Scroll Snap） */
         .views-container {
             display: flex;
             width: 100%;
@@ -151,6 +151,19 @@
             display: flex;
             justify-content: space-between;
             align-items: baseline;
+            transition: opacity 0.2s;
+            cursor: pointer;
+        }
+
+        /* タッチして完了したときのスタイル (ONの時のみ有効) */
+        .ingredient-item.checked .ing-name,
+        .ingredient-item.checked .ing-amount,
+        .ingredient-item.checked .ing-unit {
+            color: #48484a !important;
+            text-decoration: line-through;
+        }
+        .ingredient-item.checked {
+            opacity: 0.5;
         }
 
         .ing-name {
@@ -158,6 +171,7 @@
             font-size: 19px;
             font-weight: 500;
             letter-spacing: -0.3px;
+            transition: color 0.2s;
         }
 
         .ing-amount-wrapper {
@@ -172,15 +186,91 @@
             font-variant-numeric: tabular-nums;
             letter-spacing: -0.5px;
             color: var(--text-primary);
+            transition: color 0.2s;
         }
 
         .ing-unit {
             font-size: 15px;
             color: var(--text-secondary);
             font-weight: 600;
+            transition: color 0.2s;
         }
 
-        /* ページインジケーター（ドット） */
+        /* オプション画面専用スタイル */
+        .option-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1c1c20;
+            padding: 18px 20px;
+            border-radius: 18px;
+            border: 1px solid var(--card-border);
+            margin-top: 8px;
+        }
+
+        .option-label-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .option-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .option-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* iOS風トグルスイッチ */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 31px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #39393d;
+            transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border-radius: 31px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 27px;
+            width: 27px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border-radius: 50%;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(21px);
+        }
+
+        /* ページインジケーター（3個のドット） */
         .pagination-dots {
             display: flex;
             justify-content: center;
@@ -201,7 +291,7 @@
             transform: scale(1.2);
         }
 
-        /* 下部トリガーコントロールバー */
+        /* 下部コントロールバー */
         .control-bar {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -355,11 +445,35 @@
             </div>
         </div>
 
+        <div class="view-panel" id="panel2">
+            <div class="main-display">
+                <div class="display-header">
+                    <div class="media-title-wrapper">
+                        <span class="media-eyebrow">Preferences</span>
+                        <h1 class="media-title">オプション設定</h1>
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="option-group">
+                        <div class="option-label-wrapper">
+                            <span class="option-title">チェック機能</span>
+                            <span class="option-desc">項目タップで消込線を表示</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="checkFeatureToggle" onchange="toggleCheckFeature()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div class="pagination-dots">
         <div class="dot active" id="dot0"></div>
         <div class="dot" id="dot1"></div>
+        <div class="dot" id="dot2"></div>
     </div>
 
     <div class="control-bar" id="controlBar"></div>
@@ -490,7 +604,7 @@
             }
         };
 
-        // ローカルストレージからの読み込み（保存されていない場合は初期値）
+        // ローカルストレージからの読み込み
         let currentViewIndex = parseInt(localStorage.getItem('lab_viewIndex')) || 0;
         let currentMediaKey = localStorage.getItem('lab_mediaKey') || "cm";
         let currentVolume = parseInt(localStorage.getItem('lab_mediaVolume')) || 100;
@@ -503,7 +617,16 @@
             pcrVolumes.push(v);
         }
 
+        // チェック機能のON/OFF（デフォルトON）
+        let checkFeatureEnabled = localStorage.getItem('lab_checkFeature') !== null 
+            ? localStorage.getItem('lab_checkFeature') === 'true' 
+            : true;
+
         function initApp() {
+            // トグルスイッチの状態反映
+            document.getElementById("checkFeatureToggle").checked = checkFeatureEnabled;
+
+            // 培地モーダル構築
             const mediaListEl = document.getElementById("mediaOptionsList");
             for (const key in mediaDatabase) {
                 const btn = document.createElement("button");
@@ -532,6 +655,7 @@
                 volListEl.appendChild(btn);
             });
 
+            // PCR酵素モーダル構築
             const pcrListEl = document.getElementById("pcrOptionsList");
             for (const key in pcrDatabase) {
                 const btn = document.createElement("button");
@@ -560,7 +684,7 @@
                 pcrVolListEl.appendChild(btn);
             });
 
-            // 起動時に前回の画面（左か右か）の位置へスクロールを合わせる
+            // 起動時に前回の画面位置へ合わせる
             const container = document.getElementById("viewsContainer");
             setTimeout(() => {
                 container.scrollLeft = currentViewIndex * container.clientWidth;
@@ -568,6 +692,15 @@
 
             setupScrollListener();
             updateView();
+        }
+
+        function toggleCheckFeature() {
+            checkFeatureEnabled = document.getElementById("checkFeatureToggle").checked;
+            localStorage.setItem('lab_checkFeature', checkFeatureEnabled);
+            // チェックが無効化されたら既存のチェック状態をクリア
+            if (!checkFeatureEnabled) {
+                document.querySelectorAll('.ingredient-item.checked').forEach(el => el.classList.remove('checked'));
+            }
         }
 
         function setupScrollListener() {
@@ -590,6 +723,7 @@
         function updateDotsAndBar() {
             document.getElementById("dot0").classList.toggle('active', currentViewIndex === 0);
             document.getElementById("dot1").classList.toggle('active', currentViewIndex === 1);
+            document.getElementById("dot2").classList.toggle('active', currentViewIndex === 2);
             updateControlBar();
         }
 
@@ -608,7 +742,7 @@
                         <span class="arrow-icon">▾</span>
                     </button>
                 `;
-            } else {
+            } else if (currentViewIndex === 1) {
                 bar.innerHTML = `
                     <button class="trigger-btn" onclick="openModal('pcrModal')">
                         <span style="font-weight: 700; font-size: 14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${pcrDatabase[currentPcrKey].shortName}</span>
@@ -619,10 +753,18 @@
                         <span class="arrow-icon">▾</span>
                     </button>
                 `;
+            } else {
+                // 3ページ目（オプション画面）の下部はシンプルに装飾
+                bar.innerHTML = `
+                    <div style="grid-column: span 2; text-align: center; color: var(--text-secondary); font-size: 13px; padding: 12px 0;">
+                        Lab Recipe Settings
+                    </div>
+                `;
             }
         }
 
         function updateView() {
+            // 1. 培地ビュー更新
             const media = mediaDatabase[currentMediaKey];
             document.getElementById("displayMediaName").textContent = media.name;
             document.getElementById("displayVolume").textContent = `${currentVolume} mL`;
@@ -646,6 +788,11 @@
 
                 const li = document.createElement("li");
                 li.className = "ingredient-item";
+                li.onclick = () => {
+                    if (checkFeatureEnabled) {
+                        li.classList.toggle('checked');
+                    }
+                };
                 li.innerHTML = `
                     <span class="ing-name">${ing.name}</span>
                     <div class="ing-amount-wrapper">
@@ -656,6 +803,7 @@
                 listContainer.appendChild(li);
             });
 
+            // 2. PCRビュー更新
             const pcr = pcrDatabase[currentPcrKey];
             document.getElementById("displayPcrSub").textContent = "PCR Master Mix";
             document.getElementById("displayPcrName").textContent = pcr.fullName;
@@ -680,6 +828,11 @@
 
                 const li = document.createElement("li");
                 li.className = "ingredient-item";
+                li.onclick = () => {
+                    if (checkFeatureEnabled) {
+                        li.classList.toggle('checked');
+                    }
+                };
                 li.innerHTML = `
                     <span class="ing-name">${ing.name}</span>
                     <div class="ing-amount-wrapper">
