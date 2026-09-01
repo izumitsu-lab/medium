@@ -30,17 +30,19 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-primary);
-            min-height: 100vh;
+            height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
-            padding: 24px 20px 32px 20px;
+            /* iPhoneのホームインジケータ（画面下部のバー）を完全に考慮したセーフエリア対応のパディング */
+            padding: env(safe-area-inset-top, 16px) 16px env(safe-area-inset-bottom, 24px) 16px;
             max-width: 460px;
             margin: 0 auto;
             justify-content: space-between;
             overflow: hidden;
         }
 
-        /* 3画面分の横長コンテナ（CSS Scroll Snap） */
+        /* 3画面分の横長コンテナ */
         .views-container {
             display: flex;
             width: 100%;
@@ -49,8 +51,9 @@
             scroll-snap-type: x mandatory;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             scrollbar-width: none;
+            min-height: 0; /* フレックスボックス内でスクロールを正しく機能させる重要プロパティ */
         }
 
         .views-container::-webkit-scrollbar {
@@ -65,6 +68,7 @@
             scroll-snap-stop: always;
             display: flex;
             flex-direction: column;
+            min-height: 0;
         }
 
         /* メインディスプレイカード */
@@ -72,21 +76,23 @@
             background-color: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: var(--border-radius);
-            padding: 32px 26px;
+            padding: 24px 22px;
             box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
             flex: 1;
             display: flex;
             flex-direction: column;
+            min-height: 0;
         }
 
         .display-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 28px;
+            margin-bottom: 20px;
             border-bottom: 1px solid var(--card-border);
-            padding-bottom: 22px;
+            padding-bottom: 16px;
             gap: 12px;
+            flex-shrink: 0;
         }
 
         .media-title-wrapper {
@@ -106,7 +112,7 @@
         }
 
         .media-title {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
             letter-spacing: -0.5px;
             color: var(--text-primary);
@@ -117,12 +123,12 @@
         }
 
         .volume-badge {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             color: var(--accent-color);
             background: var(--accent-soft);
-            padding: 8px 16px;
-            border-radius: 22px;
+            padding: 6px 14px;
+            border-radius: 20px;
             letter-spacing: -0.3px;
             white-space: nowrap;
             flex-shrink: 0;
@@ -133,9 +139,9 @@
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
             overflow-y: auto;
-            max-height: 380px;
+            flex: 1;
             padding-right: 2px;
         }
 
@@ -153,9 +159,9 @@
             align-items: baseline;
             transition: opacity 0.2s;
             cursor: pointer;
+            flex-shrink: 0;
         }
 
-        /* タッチして完了したときのスタイル (ONの時のみ有効) */
         .ingredient-item.checked .ing-name,
         .ingredient-item.checked .ing-amount,
         .ingredient-item.checked .ing-unit {
@@ -168,7 +174,7 @@
 
         .ing-name {
             color: #e5e5ea;
-            font-size: 19px;
+            font-size: 18px;
             font-weight: 500;
             letter-spacing: -0.3px;
             transition: color 0.2s;
@@ -181,7 +187,7 @@
         }
 
         .ing-amount {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             letter-spacing: -0.5px;
@@ -190,7 +196,7 @@
         }
 
         .ing-unit {
-            font-size: 15px;
+            font-size: 14px;
             color: var(--text-secondary);
             font-weight: 600;
             transition: color 0.2s;
@@ -202,10 +208,10 @@
             justify-content: space-between;
             align-items: center;
             background-color: #1c1c20;
-            padding: 18px 20px;
+            padding: 16px 18px;
             border-radius: 18px;
             border: 1px solid var(--card-border);
-            margin-top: 8px;
+            margin-top: 4px;
         }
 
         .option-label-wrapper {
@@ -215,13 +221,13 @@
         }
 
         .option-title {
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 600;
             color: var(--text-primary);
         }
 
         .option-desc {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-secondary);
         }
 
@@ -229,8 +235,8 @@
         .switch {
             position: relative;
             display: inline-block;
-            width: 52px;
-            height: 31px;
+            width: 50px;
+            height: 28px;
             flex-shrink: 0;
         }
 
@@ -246,14 +252,14 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background-color: #39393d;
             transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            border-radius: 31px;
+            border-radius: 28px;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 27px;
-            width: 27px;
+            height: 24px;
+            width: 24px;
             left: 2px;
             bottom: 2px;
             background-color: white;
@@ -267,7 +273,7 @@
         }
 
         input:checked + .slider:before {
-            transform: translateX(21px);
+            transform: translateX(22px);
         }
 
         /* ページインジケーター（3個のドット） */
@@ -275,12 +281,13 @@
             display: flex;
             justify-content: center;
             gap: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
         }
 
         .dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background-color: rgba(255, 255, 255, 0.2);
             transition: background-color 0.3s, transform 0.3s;
@@ -288,23 +295,24 @@
 
         .dot.active {
             background-color: var(--accent-color);
-            transform: scale(1.2);
+            transform: scale(1.25);
         }
 
-        /* 下部コントロールバー */
+        /* 下部コントロールバー（はみ出し解消のためパディングと高さを最適化） */
         .control-bar {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 14px;
+            gap: 12px;
+            flex-shrink: 0;
         }
 
         .trigger-btn {
             background-color: var(--card-bg);
             border: 1px solid var(--card-border);
             color: var(--text-primary);
-            border-radius: 20px;
-            padding: 20px 22px;
-            font-size: 17px;
+            border-radius: 18px;
+            padding: 16px 18px;
+            font-size: 16px;
             font-weight: 700;
             display: flex;
             justify-content: space-between;
@@ -320,7 +328,7 @@
 
         .trigger-btn .arrow-icon {
             color: var(--text-secondary);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
         }
 
@@ -354,7 +362,7 @@
             background-color: #16161a;
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 32px 32px 0 0;
-            padding: 28px 24px 50px;
+            padding: 28px 24px 44px;
             transform: translateY(100%);
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             max-height: 75vh;
@@ -386,8 +394,8 @@
             color: var(--text-primary);
             border: 1px solid rgba(255, 255, 255, 0.04);
             border-radius: 16px;
-            padding: 18px 22px;
-            font-size: 18px;
+            padding: 16px 20px;
+            font-size: 17px;
             font-weight: 600;
             text-align: left;
             cursor: pointer;
@@ -623,10 +631,8 @@
             : true;
 
         function initApp() {
-            // トグルスイッチの状態反映
             document.getElementById("checkFeatureToggle").checked = checkFeatureEnabled;
 
-            // 培地モーダル構築
             const mediaListEl = document.getElementById("mediaOptionsList");
             for (const key in mediaDatabase) {
                 const btn = document.createElement("button");
@@ -655,7 +661,6 @@
                 volListEl.appendChild(btn);
             });
 
-            // PCR酵素モーダル構築
             const pcrListEl = document.getElementById("pcrOptionsList");
             for (const key in pcrDatabase) {
                 const btn = document.createElement("button");
@@ -684,7 +689,6 @@
                 pcrVolListEl.appendChild(btn);
             });
 
-            // 起動時に前回の画面位置へ合わせる
             const container = document.getElementById("viewsContainer");
             setTimeout(() => {
                 container.scrollLeft = currentViewIndex * container.clientWidth;
@@ -697,7 +701,6 @@
         function toggleCheckFeature() {
             checkFeatureEnabled = document.getElementById("checkFeatureToggle").checked;
             localStorage.setItem('lab_checkFeature', checkFeatureEnabled);
-            // チェックが無効化されたら既存のチェック状態をクリア
             if (!checkFeatureEnabled) {
                 document.querySelectorAll('.ingredient-item.checked').forEach(el => el.classList.remove('checked'));
             }
@@ -754,9 +757,8 @@
                     </button>
                 `;
             } else {
-                // 3ページ目（オプション画面）の下部はシンプルに装飾
                 bar.innerHTML = `
-                    <div style="grid-column: span 2; text-align: center; color: var(--text-secondary); font-size: 13px; padding: 12px 0;">
+                    <div style="grid-column: span 2; text-align: center; color: var(--text-secondary); font-size: 13px; padding: 10px 0;">
                         Lab Recipe Settings
                     </div>
                 `;
@@ -764,7 +766,6 @@
         }
 
         function updateView() {
-            // 1. 培地ビュー更新
             const media = mediaDatabase[currentMediaKey];
             document.getElementById("displayMediaName").textContent = media.name;
             document.getElementById("displayVolume").textContent = `${currentVolume} mL`;
@@ -803,7 +804,6 @@
                 listContainer.appendChild(li);
             });
 
-            // 2. PCRビュー更新
             const pcr = pcrDatabase[currentPcrKey];
             document.getElementById("displayPcrSub").textContent = "PCR Master Mix";
             document.getElementById("displayPcrName").textContent = pcr.fullName;
