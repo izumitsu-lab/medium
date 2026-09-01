@@ -13,7 +13,8 @@
             --text-secondary: #98989f;
             --accent-color: #2997ff;
             --accent-soft: rgba(41, 151, 255, 0.15);
-            --border-radius: 28px;
+            --reset-btn-bg: #ff453a;
+            --border-radius: 24px;
         }
 
         * {
@@ -34,8 +35,8 @@
             height: 100dvh;
             display: flex;
             flex-direction: column;
-            /* iPhoneのホームインジケータ（画面下部のバー）を完全に考慮したセーフエリア対応のパディング */
-            padding: env(safe-area-inset-top, 16px) 16px env(safe-area-inset-bottom, 24px) 16px;
+            /* 上下の余白をコンパクトにして、スマホでのはみ出しを確実に防止 */
+            padding: 10px 16px env(safe-area-inset-bottom, 16px) 16px;
             max-width: 460px;
             margin: 0 auto;
             justify-content: space-between;
@@ -51,9 +52,9 @@
             scroll-snap-type: x mandatory;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             scrollbar-width: none;
-            min-height: 0; /* フレックスボックス内でスクロールを正しく機能させる重要プロパティ */
+            min-height: 0;
         }
 
         .views-container::-webkit-scrollbar {
@@ -76,21 +77,23 @@
             background-color: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: var(--border-radius);
-            padding: 24px 22px;
-            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+            padding: 20px 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
             flex: 1;
             display: flex;
             flex-direction: column;
             min-height: 0;
+            position: relative;
+            overflow: hidden;
         }
 
         .display-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 14px;
             border-bottom: 1px solid var(--card-border);
-            padding-bottom: 16px;
+            padding-bottom: 12px;
             gap: 12px;
             flex-shrink: 0;
         }
@@ -98,21 +101,21 @@
         .media-title-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
             flex: 1;
             min-width: 0;
         }
 
         .media-eyebrow {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
-            letter-spacing: 1.2px;
+            letter-spacing: 1px;
             color: var(--text-secondary);
             text-transform: uppercase;
         }
 
         .media-title {
-            font-size: 20px;
+            font-size: 19px;
             font-weight: 700;
             letter-spacing: -0.5px;
             color: var(--text-primary);
@@ -123,15 +126,33 @@
         }
 
         .volume-badge {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--accent-color);
             background: var(--accent-soft);
-            padding: 6px 14px;
-            border-radius: 20px;
+            padding: 5px 12px;
+            border-radius: 18px;
             letter-spacing: -0.3px;
             white-space: nowrap;
             flex-shrink: 0;
+        }
+
+        /* 組成リストコンテナ */
+        .list-container-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            padding-right: 2px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .list-container-wrapper::-webkit-scrollbar {
+            width: 4px;
+        }
+        .list-container-wrapper::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
         }
 
         /* 組成リスト */
@@ -139,18 +160,8 @@
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            overflow-y: auto;
-            flex: 1;
-            padding-right: 2px;
-        }
-
-        .ingredient-list::-webkit-scrollbar {
-            width: 4px;
-        }
-        .ingredient-list::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
+            gap: 14px;
+            padding-bottom: 16px;
         }
 
         .ingredient-item {
@@ -174,7 +185,7 @@
 
         .ing-name {
             color: #e5e5ea;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 500;
             letter-spacing: -0.3px;
             transition: color 0.2s;
@@ -187,7 +198,7 @@
         }
 
         .ing-amount {
-            font-size: 20px;
+            font-size: 19px;
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             letter-spacing: -0.5px;
@@ -202,22 +213,72 @@
             transition: color 0.2s;
         }
 
-        /* オプション画面専用スタイル */
+        /* 一括リセットバナー */
+        .reset-banner {
+            position: absolute;
+            bottom: 12px;
+            left: 16px;
+            right: 16px;
+            background: rgba(28, 28, 32, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 69, 58, 0.3);
+            border-radius: 16px;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            transform: translateY(15px);
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 10;
+        }
+
+        .reset-banner.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .reset-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffb3b0;
+        }
+
+        .reset-btn {
+            background-color: var(--reset-btn-bg);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .reset-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* オプション画面 */
         .option-group {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background-color: #1c1c20;
-            padding: 16px 18px;
-            border-radius: 18px;
+            padding: 14px 16px;
+            border-radius: 16px;
             border: 1px solid var(--card-border);
-            margin-top: 4px;
         }
 
         .option-label-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
         }
 
         .option-title {
@@ -235,8 +296,8 @@
         .switch {
             position: relative;
             display: inline-block;
-            width: 50px;
-            height: 28px;
+            width: 46px;
+            height: 26px;
             flex-shrink: 0;
         }
 
@@ -252,20 +313,20 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background-color: #39393d;
             transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            border-radius: 28px;
+            border-radius: 26px;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 24px;
-            width: 24px;
+            height: 22px;
+            width: 22px;
             left: 2px;
             bottom: 2px;
             background-color: white;
             transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             border-radius: 50%;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
         input:checked + .slider {
@@ -273,21 +334,21 @@
         }
 
         input:checked + .slider:before {
-            transform: translateX(22px);
+            transform: translateX(20px);
         }
 
-        /* ページインジケーター（3個のドット） */
+        /* ページインジケータードット */
         .pagination-dots {
             display: flex;
             justify-content: center;
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 6px;
+            margin-bottom: 8px;
             flex-shrink: 0;
         }
 
         .dot {
-            width: 7px;
-            height: 7px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background-color: rgba(255, 255, 255, 0.2);
             transition: background-color 0.3s, transform 0.3s;
@@ -298,11 +359,11 @@
             transform: scale(1.25);
         }
 
-        /* 下部コントロールバー（はみ出し解消のためパディングと高さを最適化） */
+        /* 下部コントロールバー */
         .control-bar {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 10px;
             flex-shrink: 0;
         }
 
@@ -310,9 +371,9 @@
             background-color: var(--card-bg);
             border: 1px solid var(--card-border);
             color: var(--text-primary);
-            border-radius: 18px;
-            padding: 16px 18px;
-            font-size: 16px;
+            border-radius: 16px;
+            padding: 14px 16px;
+            font-size: 15px;
             font-weight: 700;
             display: flex;
             justify-content: space-between;
@@ -328,11 +389,11 @@
 
         .trigger-btn .arrow-icon {
             color: var(--text-secondary);
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
         }
 
-        /* モーダルオーバーレイ */
+        /* モーダル */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -361,11 +422,11 @@
             max-width: 460px;
             background-color: #16161a;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 32px 32px 0 0;
-            padding: 28px 24px 44px;
+            border-radius: 28px 28px 0 0;
+            padding: 24px 20px 40px;
             transform: translateY(100%);
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            max-height: 75vh;
+            max-height: 70vh;
             overflow-y: auto;
         }
 
@@ -374,10 +435,10 @@
         }
 
         .modal-header {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             color: var(--text-secondary);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             text-align: center;
             letter-spacing: 1px;
             text-transform: uppercase;
@@ -386,16 +447,16 @@
         .option-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
         .option-item {
             background-color: #222228;
             color: var(--text-primary);
             border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 16px;
-            padding: 16px 20px;
-            font-size: 17px;
+            border-radius: 14px;
+            padding: 15px 18px;
+            font-size: 16px;
             font-weight: 600;
             text-align: left;
             cursor: pointer;
@@ -413,13 +474,13 @@
             background-color: var(--accent-color);
             color: #ffffff;
             border-color: transparent;
-            box-shadow: 0 8px 20px rgba(41, 151, 255, 0.3);
+            box-shadow: 0 6px 16px rgba(41, 151, 255, 0.3);
         }
 
         .volume-grid-modal {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+            gap: 10px;
         }
     </style>
 </head>
@@ -436,7 +497,13 @@
                     </div>
                     <span class="volume-badge" id="displayVolume">100 mL</span>
                 </div>
-                <ul class="ingredient-list" id="ingredientList"></ul>
+                <div class="list-container-wrapper">
+                    <ul class="ingredient-list" id="ingredientList"></ul>
+                </div>
+                <div class="reset-banner" id="mediaResetBanner">
+                    <span class="reset-text">チェックが入っています</span>
+                    <button class="reset-btn" onclick="resetChecks('media')">すべて外す</button>
+                </div>
             </div>
         </div>
 
@@ -449,7 +516,13 @@
                     </div>
                     <span class="volume-badge" id="displayPcrVolume">50 µL</span>
                 </div>
-                <ul class="ingredient-list" id="pcrIngredientList"></ul>
+                <div class="list-container-wrapper">
+                    <ul class="ingredient-list" id="pcrIngredientList"></ul>
+                </div>
+                <div class="reset-banner" id="pcrResetBanner">
+                    <span class="reset-text">チェックが入っています</span>
+                    <button class="reset-btn" onclick="resetChecks('pcr')">すべて外す</button>
+                </div>
             </div>
         </div>
 
@@ -461,7 +534,7 @@
                         <h1 class="media-title">オプション設定</h1>
                     </div>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; flex-direction: column; gap: 12px;">
                     <div class="option-group">
                         <div class="option-label-wrapper">
                             <span class="option-title">チェック機能</span>
@@ -612,7 +685,6 @@
             }
         };
 
-        // ローカルストレージからの読み込み
         let currentViewIndex = parseInt(localStorage.getItem('lab_viewIndex')) || 0;
         let currentMediaKey = localStorage.getItem('lab_mediaKey') || "cm";
         let currentVolume = parseInt(localStorage.getItem('lab_mediaVolume')) || 100;
@@ -625,7 +697,6 @@
             pcrVolumes.push(v);
         }
 
-        // チェック機能のON/OFF（デフォルトON）
         let checkFeatureEnabled = localStorage.getItem('lab_checkFeature') !== null 
             ? localStorage.getItem('lab_checkFeature') === 'true' 
             : true;
@@ -703,6 +774,8 @@
             localStorage.setItem('lab_checkFeature', checkFeatureEnabled);
             if (!checkFeatureEnabled) {
                 document.querySelectorAll('.ingredient-item.checked').forEach(el => el.classList.remove('checked'));
+                checkResetButtonState('media');
+                checkResetButtonState('pcr');
             }
         }
 
@@ -758,11 +831,38 @@
                 `;
             } else {
                 bar.innerHTML = `
-                    <div style="grid-column: span 2; text-align: center; color: var(--text-secondary); font-size: 13px; padding: 10px 0;">
+                    <div style="grid-column: span 2; text-align: center; color: var(--text-secondary); font-size: 13px; padding: 8px 0;">
                         Lab Recipe Settings
                     </div>
                 `;
             }
+        }
+
+        function checkResetButtonState(type) {
+            const containerId = type === 'media' ? 'ingredientList' : 'pcrIngredientList';
+            const bannerId = type === 'media' ? 'mediaResetBanner' : 'pcrResetBanner';
+            
+            const list = document.getElementById(containerId);
+            const banner = document.getElementById(bannerId);
+            if (!list || !banner) return;
+
+            const checkedCount = list.querySelectorAll('.ingredient-item.checked').length;
+            if (checkedCount > 0 && checkFeatureEnabled) {
+                banner.classList.add('visible');
+            } else {
+                banner.classList.remove('visible');
+            }
+        }
+
+        function resetChecks(type) {
+            const containerId = type === 'media' ? 'ingredientList' : 'pcrIngredientList';
+            const list = document.getElementById(containerId);
+            if (list) {
+                list.querySelectorAll('.ingredient-item.checked').forEach(el => {
+                    el.classList.remove('checked');
+                });
+            }
+            checkResetButtonState(type);
         }
 
         function updateView() {
@@ -792,6 +892,7 @@
                 li.onclick = () => {
                     if (checkFeatureEnabled) {
                         li.classList.toggle('checked');
+                        checkResetButtonState('media');
                     }
                 };
                 li.innerHTML = `
@@ -803,6 +904,7 @@
                 `;
                 listContainer.appendChild(li);
             });
+            checkResetButtonState('media');
 
             const pcr = pcrDatabase[currentPcrKey];
             document.getElementById("displayPcrSub").textContent = "PCR Master Mix";
@@ -831,6 +933,7 @@
                 li.onclick = () => {
                     if (checkFeatureEnabled) {
                         li.classList.toggle('checked');
+                        checkResetButtonState('pcr');
                     }
                 };
                 li.innerHTML = `
@@ -842,6 +945,7 @@
                 `;
                 pcrListContainer.appendChild(li);
             });
+            checkResetButtonState('pcr');
 
             updateControlBar();
         }
