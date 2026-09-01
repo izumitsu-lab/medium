@@ -308,8 +308,8 @@
 
     <script>
         const mediaDatabase = {
-            "cm_agar": {
-                name: "CM培地（寒天）",
+            "cm": {
+                name: "CM培地",
                 baseVolume: 100,
                 ingredients: [
                     { name: "グルコース", amount: 1.0, unit: "g" },
@@ -321,20 +321,8 @@
                     { name: "蒸留水", amount: 96.4, unit: "mL" }
                 ]
             },
-            "cm_liquid": {
-                name: "CM液体培地",
-                baseVolume: 100,
-                ingredients: [
-                    { name: "グルコース", amount: 1.0, unit: "g" },
-                    { name: "Yeast extract", amount: 0.1, unit: "g" },
-                    { name: "Tryptone", amount: 0.1, unit: "g" },
-                    { name: "Solution A", amount: 1.0, unit: "mL" },
-                    { name: "Solution B", amount: 1.0, unit: "mL" },
-                    { name: "蒸留水", amount: 97.8, unit: "mL" }
-                ]
-            },
-            "v30_agar": {
-                name: "V30培地（寒天）",
+            "v30": {
+                name: "V30培地",
                 baseVolume: 100,
                 ingredients: [
                     { name: "V30ジュース", amount: 16.0, unit: "mL" },
@@ -343,16 +331,16 @@
                     { name: "水", amount: 84.0, unit: "mL" }
                 ]
             },
-            "pda_agar": {
-                name: "PDA培地（寒天）",
+            "pda": {
+                name: "PDA培地",
                 baseVolume: 100,
                 ingredients: [
                     { name: "PDA (粉)", amount: 3.9, unit: "g" },
                     { name: "水", amount: 100.0, unit: "mL" }
                 ]
             },
-            "lb_agar": {
-                name: "LB培地（寒天）",
+            "lb": {
+                name: "LB培地",
                 baseVolume: 100,
                 ingredients: [
                     { name: "LB (粉)", amount: 2.0, unit: "g" },
@@ -362,7 +350,7 @@
             }
         };
 
-        let currentMediaKey = "cm_agar";
+        let currentMediaKey = "cm";
         let currentVolume = 100;
         const volumes = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
 
