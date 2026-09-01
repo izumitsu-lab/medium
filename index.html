@@ -35,7 +35,6 @@
             height: 100dvh;
             display: flex;
             flex-direction: column;
-            /* 上下の余白をコンパクトにして、スマホでのはみ出しを確実に防止 */
             padding: 10px 16px env(safe-area-inset-bottom, 16px) 16px;
             max-width: 460px;
             margin: 0 auto;
@@ -135,6 +134,24 @@
             letter-spacing: -0.3px;
             white-space: nowrap;
             flex-shrink: 0;
+        }
+
+        /* アドバイス・コメント表示エリア（ONのときだけ表示） */
+        .advice-box {
+            background-color: rgba(41, 151, 255, 0.08);
+            border: 1px solid rgba(41, 151, 255, 0.2);
+            border-radius: 14px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #70b5ff;
+            display: none; /* デフォルト非表示、JSで制御 */
+            flex-shrink: 0;
+            line-height: 1.4;
+        }
+        .advice-box.visible {
+            display: block;
         }
 
         /* 組成リストコンテナ */
@@ -273,6 +290,7 @@
             padding: 14px 16px;
             border-radius: 16px;
             border: 1px solid var(--card-border);
+            margin-bottom: 10px;
         }
 
         .option-label-wrapper {
@@ -497,6 +515,7 @@
                     </div>
                     <span class="volume-badge" id="displayVolume">100 mL</span>
                 </div>
+                <div class="advice-box" id="mediaAdviceBox"></div>
                 <div class="list-container-wrapper">
                     <ul class="ingredient-list" id="ingredientList"></ul>
                 </div>
@@ -516,6 +535,7 @@
                     </div>
                     <span class="volume-badge" id="displayPcrVolume">50 µL</span>
                 </div>
+                <div class="advice-box" id="pcrAdviceBox"></div>
                 <div class="list-container-wrapper">
                     <ul class="ingredient-list" id="pcrIngredientList"></ul>
                 </div>
@@ -542,6 +562,16 @@
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="checkFeatureToggle" onchange="toggleCheckFeature()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="option-group">
+                        <div class="option-label-wrapper">
+                            <span class="option-title">アドバイスコメント</span>
+                            <span class="option-desc">シャーレ換算や実験メモを表示</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="adviceFeatureToggle" onchange="toggleAdviceFeature()">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -592,6 +622,11 @@
             "cm": {
                 name: "CM培地",
                 baseVolume: 100,
+                // 55mmシャーレ1枚あたり約6mL換算のコメント生成関数
+                getAdvice: (vol) => {
+                    const count = (vol / 6).toFixed(1);
+                    return `💡 55mmシャーレ換算: 約 ${count} 枚分`;
+                },
                 ingredients: [
                     { name: "グルコース", amount: 1.0, unit: "g" },
                     { name: "Yeast extract", amount: 0.1, unit: "g" },
@@ -605,6 +640,10 @@
             "v30": {
                 name: "V30培地",
                 baseVolume: 100,
+                getAdvice: (vol) => {
+                    const count = (vol / 6).toFixed(1);
+                    return `💡 55mmシャーレ換算: 約 ${count} 枚分`;
+                },
                 ingredients: [
                     { name: "V30ジュース", amount: 16.0, unit: "mL" },
                     { name: "CaCO3", amount: 0.2, unit: "g" },
@@ -615,6 +654,10 @@
             "pda": {
                 name: "PDA培地",
                 baseVolume: 100,
+                getAdvice: (vol) => {
+                    const count = (vol / 6).toFixed(1);
+                    return `💡 55mmシャーレ換算: 約 ${count} 枚分`;
+                },
                 ingredients: [
                     { name: "PDA (粉)", amount: 3.9, unit: "g" },
                     { name: "水", amount: 100.0, unit: "mL" }
@@ -623,6 +666,10 @@
             "lb": {
                 name: "LB培地",
                 baseVolume: 100,
+                getAdvice: (vol) => {
+                    const count = (vol / 6).toFixed(1);
+                    return `💡 55mmシャーレ換算: 約 ${count} 枚分`;
+                },
                 ingredients: [
                     { name: "LB (粉)", amount: 2.0, unit: "g" },
                     { name: "寒天", amount: 1.5, unit: "g" },
@@ -636,6 +683,9 @@
                 shortName: "PrimeSTAR GXL",
                 fullName: "PrimeSTAR GXL (Premix)",
                 baseVolume: 50,
+                getAdvice: (vol) => {
+                    return `💡 伸長時間目安: 1kbあたり約1分`;
+                },
                 ingredients: [
                     { name: "PrimeSTAR GXL DNA Pol.", amount: 1.0, unit: "µL" },
                     { name: "5x PrimeSTAR Buffer", amount: 10.0, unit: "µL" },
@@ -650,6 +700,9 @@
                 shortName: "ExPremier",
                 fullName: "ExPremier (Premix)",
                 baseVolume: 50,
+                getAdvice: (vol) => {
+                    return `💡 高感度・長鎖PCR向け`;
+                },
                 ingredients: [
                     { name: "ExPremier DNA Polymerase", amount: 1.0, unit: "µL" },
                     { name: "2x Buffer", amount: 25.0, unit: "µL" },
@@ -663,6 +716,9 @@
                 shortName: "PrimeSTAR MAX",
                 fullName: "PrimeSTAR MAX (Premix)",
                 baseVolume: 50,
+                getAdvice: (vol) => {
+                    return `💡 プルーフリード機能付き高速マスターミックス`;
+                },
                 ingredients: [
                     { name: "PrimeSTAR MAX Premix (2x)", amount: 25.0, unit: "µL" },
                     { name: "Forward Primer (10 µM)", amount: 1.0, unit: "µL" },
@@ -675,6 +731,9 @@
                 shortName: "EmeraldAmp",
                 fullName: "EmeraldAmp (Premix)",
                 baseVolume: 50,
+                getAdvice: (vol) => {
+                    return `💡 ダーイレクト電気泳動可能（色素入り）`;
+                },
                 ingredients: [
                     { name: "EmeraldAmp PCR Master Mix", amount: 25.0, unit: "µL" },
                     { name: "Forward Primer (10 µM)", amount: 1.0, unit: "µL" },
@@ -701,8 +760,13 @@
             ? localStorage.getItem('lab_checkFeature') === 'true' 
             : true;
 
+        let adviceFeatureEnabled = localStorage.getItem('lab_adviceFeature') !== null 
+            ? localStorage.getItem('lab_adviceFeature') === 'true' 
+            : true;
+
         function initApp() {
             document.getElementById("checkFeatureToggle").checked = checkFeatureEnabled;
+            document.getElementById("adviceFeatureToggle").checked = adviceFeatureEnabled;
 
             const mediaListEl = document.getElementById("mediaOptionsList");
             for (const key in mediaDatabase) {
@@ -777,6 +841,12 @@
                 checkResetButtonState('media');
                 checkResetButtonState('pcr');
             }
+        }
+
+        function toggleAdviceFeature() {
+            adviceFeatureEnabled = document.getElementById("adviceFeatureToggle").checked;
+            localStorage.setItem('lab_adviceFeature', adviceFeatureEnabled);
+            updateView();
         }
 
         function setupScrollListener() {
@@ -866,9 +936,21 @@
         }
 
         function updateView() {
+            // アドバイス機能の反映
+            const mediaAdviceBox = document.getElementById("mediaAdviceBox");
+            const pcrAdviceBox = document.getElementById("pcrAdviceBox");
+
+            // 1. 培地ビュー更新
             const media = mediaDatabase[currentMediaKey];
             document.getElementById("displayMediaName").textContent = media.name;
             document.getElementById("displayVolume").textContent = `${currentVolume} mL`;
+
+            if (adviceFeatureEnabled) {
+                mediaAdviceBox.textContent = media.getAdvice(currentVolume);
+                mediaAdviceBox.classList.add("visible");
+            } else {
+                mediaAdviceBox.classList.remove("visible");
+            }
 
             document.querySelectorAll("#mediaOptionsList .option-item").forEach(el => {
                 el.classList.toggle('selected', el.textContent === media.name);
@@ -906,10 +988,18 @@
             });
             checkResetButtonState('media');
 
+            // 2. PCRビュー更新
             const pcr = pcrDatabase[currentPcrKey];
             document.getElementById("displayPcrSub").textContent = "PCR Master Mix";
             document.getElementById("displayPcrName").textContent = pcr.fullName;
             document.getElementById("displayPcrVolume").textContent = `${currentPcrVolume} µL`;
+
+            if (adviceFeatureEnabled) {
+                pcrAdviceBox.textContent = pcr.getAdvice(currentPcrVolume);
+                pcrAdviceBox.classList.add("visible");
+            } else {
+                pcrAdviceBox.classList.remove("visible");
+            }
 
             document.querySelectorAll("#pcrOptionsList .option-item").forEach(el => {
                 el.classList.toggle('selected', el.textContent === pcr.shortName);
