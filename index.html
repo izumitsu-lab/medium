@@ -436,7 +436,7 @@
             transform: scale(0.95);
         }
 
-        /* オプション画面 */
+        /* オプション画面のスタイル */
         .option-group {
             display: flex;
             justify-content: space-between;
@@ -462,6 +462,28 @@
         .option-desc {
             font-size: 12px;
             color: var(--text-secondary);
+        }
+
+        .option-action-btn {
+            background-color: var(--accent-soft);
+            color: var(--accent-color);
+            border: 1px solid rgba(41, 151, 255, 0.3);
+            border-radius: 12px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .option-danger-btn {
+            background-color: rgba(255, 69, 58, 0.12);
+            color: var(--reset-btn-bg);
+            border: 1px solid rgba(255, 69, 58, 0.3);
+            border-radius: 12px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
         }
 
         /* iOS風トグルスイッチ */
@@ -655,13 +677,46 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 8px;
         }
+
+        /* 並び替え・カスタム設定用モーダルの行スタイル */
+        .custom-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #222228;
+            border-radius: 14px;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .custom-row-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .order-btn-group {
+            display: flex;
+            gap: 4px;
+        }
+        .order-btn {
+            background: #2c2c34;
+            color: var(--text-primary);
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .order-btn:active {
+            background: var(--accent-color);
+        }
     </style>
 </head>
 <body>
 
     <div class="views-container" id="viewsContainer">
         
-        <!-- 1ページ目：培地ビュー -->
         <div class="view-panel" id="panel0">
             <div class="main-display">
                 <div class="display-header">
@@ -682,7 +737,6 @@
             </div>
         </div>
 
-        <!-- 2ページ目：PCRビュー -->
         <div class="view-panel" id="panel1">
             <div class="main-display">
                 <div class="display-header">
@@ -700,7 +754,6 @@
                 <div class="list-container-wrapper">
                     <ul class="ingredient-list" id="pcrIngredientList"></ul>
                     <div class="cycle-container" id="pcrCycleContainer" style="display: none;"></div>
-                    <!-- 酵素の使い分けガイド -->
                     <div class="guide-container" id="pcrGuideContainer" style="display: none;">
                         <div class="guide-card">
                             <span class="guide-title">🧬 プラスミドクローニング（正確性重視）</span>
@@ -723,7 +776,6 @@
             </div>
         </div>
 
-        <!-- 3ページ目：オプションビュー -->
         <div class="view-panel" id="panel2">
             <div class="main-display">
                 <div class="display-header">
@@ -753,6 +805,27 @@
                             <span class="slider"></span>
                         </label>
                     </div>
+                    <div class="option-group">
+                        <div class="option-label-wrapper">
+                            <span class="option-title">培地の表示・並び替え</span>
+                            <span class="option-desc">学生ごとの使用培地をカスタム</span>
+                        </div>
+                        <button class="option-action-btn" onclick="openModal('mediaConfigModal')">設定する</button>
+                    </div>
+                    <div class="option-group">
+                        <div class="option-label-wrapper">
+                            <span class="option-title">PCR酵素の表示・並び替え</span>
+                            <span class="option-desc">使用する酵素やガイドをカスタム</span>
+                        </div>
+                        <button class="option-action-btn" onclick="openModal('pcrConfigModal')">設定する</button>
+                    </div>
+                    <div class="option-group">
+                        <div class="option-label-wrapper">
+                            <span class="option-title">設定の初期化</span>
+                            <span class="option-desc">保存データをすべて消去してリセット</span>
+                        </div>
+                        <button class="option-danger-btn" onclick="resetAllSettings()">初期に戻す</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -767,7 +840,6 @@
 
     <div class="control-bar" id="controlBar"></div>
 
-    <!-- モーダル各種 -->
     <div class="modal-overlay" id="mediaModal" onclick="outsideClose(event, 'mediaModal')">
         <div class="modal-content">
             <div class="modal-header">培地を選択</div>
@@ -796,74 +868,46 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="mediaConfigModal" onclick="outsideClose(event, 'mediaConfigModal')">
+        <div class="modal-content">
+            <div class="modal-header">培地の表示と並び替え</div>
+            <div class="option-list" id="mediaConfigList"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="pcrConfigModal" onclick="outsideClose(event, 'pcrConfigModal')">
+        <div class="modal-content">
+            <div class="modal-header">PCR酵素の表示と並び替え</div>
+            <div class="option-list" id="pcrConfigList"></div>
+        </div>
+    </div>
+
     <script>
         const mediaDatabase = {
-            "cm": {
-                name: "CM培地",
-                baseVolume: 100,
-                getAdvice: (vol) => {
-                    const count = (vol / 6).toFixed(1);
-                    return `💡 55mmシャーレ換算: 約 ${count} 枚分`;
-                },
-                ingredients: [
-                    { name: "グルコース", amount: 1.0, unit: "g" },
-                    { name: "Yeast extract", amount: 0.1, unit: "g" },
-                    { name: "Tryptone", amount: 0.1, unit: "g" },
-                    { name: "Solution A", amount: 1.0, unit: "mL" },
-                    { name: "Solution B", amount: 1.0, unit: "mL" },
-                    { name: "寒天", amount: 1.5, unit: "g" },
-                    { name: "蒸留水", amount: 96.4, unit: "mL" }
-                ]
-            },
-            "v30": {
-                name: "V30培地",
-                baseVolume: 100,
-                getAdvice: (vol) => {
-                    const count = (vol / 6).toFixed(1);
-                    return `💡 55mmシャーレ換算: 約 ${count} 枚分`;
-                },
-                ingredients: [
-                    { name: "V30ジュース", amount: 16.0, unit: "mL" },
-                    { name: "CaCO3", amount: 0.2, unit: "g" },
-                    { name: "寒天", amount: 1.5, unit: "g" },
-                    { name: "水", amount: 84.0, unit: "mL" }
-                ]
-            },
-            "pda": {
-                name: "PDA培地",
-                baseVolume: 100,
-                getAdvice: (vol) => {
-                    const count = (vol / 6).toFixed(1);
-                    return `💡 55mmシャーレ換算: 約 ${count} 枚分`;
-                },
-                ingredients: [
-                    { name: "PDA (粉)", amount: 3.9, unit: "g" },
-                    { name: "水", amount: 100.0, unit: "mL" }
-                ]
-            },
-            "lb": {
-                name: "LB培地",
-                baseVolume: 100,
-                getAdvice: (vol) => {
-                    const count = (vol / 6).toFixed(1);
-                    return `💡 55mmシャーレ換算: 約 ${count} 枚分`;
-                },
-                ingredients: [
-                    { name: "LB (粉)", amount: 2.0, unit: "g" },
-                    { name: "寒天", amount: 1.5, unit: "g" },
-                    { name: "水", amount: 100.0, unit: "mL" }
-                ]
-            }
+            "cm": { name: "CM培地", baseVolume: 100, getAdvice: (vol) => `💡 55mmシャーレ換算: 約 ${(vol / 6).toFixed(1)} 枚分`, ingredients: [
+                { name: "グルコース", amount: 1.0, unit: "g" }, { name: "Yeast extract", amount: 0.1, unit: "g" }, { name: "Tryptone", amount: 0.1, unit: "g" }, { name: "Solution A", amount: 1.0, unit: "mL" }, { name: "Solution B", amount: 1.0, unit: "mL" }, { name: "寒天", amount: 1.5, unit: "g" }, { name: "蒸留水", amount: 96.4, unit: "mL" }
+            ]},
+            "v30": { name: "V30培地", baseVolume: 100, getAdvice: (vol) => `💡 55mmシャーレ換算: 約 ${(vol / 6).toFixed(1)} 枚分`, ingredients: [
+                { name: "V30ジュース", amount: 16.0, unit: "mL" }, { name: "CaCO3", amount: 0.2, unit: "g" }, { name: "寒天", amount: 1.5, unit: "g" }, { name: "水", amount: 84.0, unit: "mL" }
+            ]},
+            "pda": { name: "PDA培地", baseVolume: 100, getAdvice: (vol) => `💡 55mmシャーレ換算: 約 ${(vol / 6).toFixed(1)} 枚分`, ingredients: [
+                { name: "PDA (粉)", amount: 3.9, unit: "g" }, { name: "水", amount: 100.0, unit: "mL" }
+            ]},
+            "lb": { name: "LB培地", baseVolume: 100, getAdvice: (vol) => `💡 55mmシャーレ換算: 約 ${(vol / 6).toFixed(1)} 枚分`, ingredients: [
+                { name: "LB (粉)", amount: 2.0, unit: "g" }, { name: "寒天", amount: 1.5, unit: "g" }, { name: "水", amount: 100.0, unit: "mL" }
+            ]}
         };
+
+        let mediaOrderConfig = JSON.parse(localStorage.getItem('lab_mediaOrderConfig')) || [
+            { key: "cm", visible: true }, { key: "v30", visible: true }, { key: "pda", visible: true }, { key: "lb", visible: true }
+        ];
 
         const pcrDatabase = {
             "ex_premier": {
                 shortName: "ExPremier",
                 fullName: "ExPremier (Premix)",
                 baseVolume: 50,
-                getAdvice: (vol) => {
-                    return `💡 高成功率を誇るファーストチョイス酵素`;
-                },
+                getAdvice: (vol) => `💡 高成功率を誇るファーストチョイス酵素`,
                 cycles: [
                     { type: 'single', name: "初期変性", temp: "94 °C", time: "1 min" },
                     { type: 'loop_start', name: "30 Cycles" },
@@ -883,9 +927,7 @@
                 shortName: "PrimeSTAR MAX",
                 fullName: "PrimeSTAR MAX (Premix)",
                 baseVolume: 50,
-                getAdvice: (vol) => {
-                    return `💡 最高レベルの正確性、In-Fusion Cloningにベストマッチ`;
-                },
+                getAdvice: (vol) => `💡 最高レベルの正確性、In-Fusion Cloningにベストマッチ`,
                 cycles: [
                     { type: 'loop_start', name: "30–35 Cycles (通常条件: >200ng)" },
                     { type: 'loop_step', name: "変性", temp: "98 °C", time: "10 sec" },
@@ -910,9 +952,7 @@
                 shortName: "PrimeSTAR GXL",
                 fullName: "PrimeSTAR GXL (Premix)",
                 baseVolume: 50,
-                getAdvice: (vol) => {
-                    return `💡 高正確性だがMAXに劣る。GCリッチに強い。`;
-                },
+                getAdvice: (vol) => `💡 高正確性だがMAXに劣る。GCリッチに強い。`,
                 cycles: [
                     { type: 'loop_start', name: "30 Cycles" },
                     { type: 'loop_step', name: "変性", temp: "98 °C", time: "10 sec" },
@@ -931,9 +971,7 @@
                 shortName: "EmeraldAmp",
                 fullName: "EmeraldAmp (Premix)",
                 baseVolume: 50,
-                getAdvice: (vol) => {
-                    return `💡 コスパ最強。コロニーPCR、ルーチンPCRに。`;
-                },
+                getAdvice: (vol) => `💡 コスパ最強。コロニーPCR、ルーチンPCRに。`,
                 cycles: [
                     { type: 'loop_start', name: "30 Cycles" },
                     { type: 'loop_step', name: "変性", temp: "98 °C", time: "10 sec" },
@@ -955,45 +993,33 @@
             }
         };
 
+        let pcrOrderConfig = JSON.parse(localStorage.getItem('lab_pcrOrderConfig')) || [
+            { key: "ex_premier", visible: true }, { key: "prime_star_max", visible: true }, { key: "prime_star_gxl", visible: true }, { key: "emerald_amp", visible: true }, { key: "guide", visible: true }
+        ];
+
         let currentViewIndex = parseInt(localStorage.getItem('lab_viewIndex')) || 0;
         let currentMediaKey = localStorage.getItem('lab_mediaKey') || "cm";
         let currentVolume = parseInt(localStorage.getItem('lab_mediaVolume')) || 100;
         const mediaVolumes = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
 
         let storedPcrKey = localStorage.getItem('lab_pcrKey');
-        let currentPcrKey = (storedPcrKey && pcrDatabase[storedPcrKey]) ? storedPcrKey : "ex_premier";
+        let visiblePcrKeys = pcrOrderConfig.filter(p => p.visible).map(p => p.key);
+        let currentPcrKey = (storedPcrKey && visiblePcrKeys.includes(storedPcrKey)) ? storedPcrKey : (visiblePcrKeys[0] || "ex_premier");
+        
         let currentPcrVolume = parseInt(localStorage.getItem('lab_pcrVolume')) || 50;
         let currentPcrMode = "recipe";
         const pcrVolumes = [];
-        for(let v = 50; v <= 250; v += 10) {
-            pcrVolumes.push(v);
-        }
+        for(let v = 50; v <= 250; v += 10) { pcrVolumes.push(v); }
 
-        let checkFeatureEnabled = localStorage.getItem('lab_checkFeature') !== null 
-            ? localStorage.getItem('lab_checkFeature') === 'true' 
-            : true;
-
-        let adviceFeatureEnabled = localStorage.getItem('lab_adviceFeature') !== null 
-            ? localStorage.getItem('lab_adviceFeature') === 'true' 
-            : true;
+        let checkFeatureEnabled = localStorage.getItem('lab_checkFeature') !== null ? localStorage.getItem('lab_checkFeature') === 'true' : true;
+        let adviceFeatureEnabled = localStorage.getItem('lab_adviceFeature') !== null ? localStorage.getItem('lab_adviceFeature') === 'true' : true;
 
         function initApp() {
             document.getElementById("checkFeatureToggle").checked = checkFeatureEnabled;
             document.getElementById("adviceFeatureToggle").checked = adviceFeatureEnabled;
 
-            const mediaListEl = document.getElementById("mediaOptionsList");
-            for (const key in mediaDatabase) {
-                const btn = document.createElement("button");
-                btn.className = `option-item ${key === currentMediaKey ? 'selected' : ''}`;
-                btn.textContent = mediaDatabase[key].name;
-                btn.onclick = () => {
-                    currentMediaKey = key;
-                    localStorage.setItem('lab_mediaKey', key);
-                    closeModal('mediaModal');
-                    updateView();
-                };
-                mediaListEl.appendChild(btn);
-            }
+            buildMediaModals();
+            buildPcrModals();
 
             const volListEl = document.getElementById("volumeOptionsList");
             mediaVolumes.forEach(vol => {
@@ -1008,20 +1034,6 @@
                 };
                 volListEl.appendChild(btn);
             });
-
-            const pcrListEl = document.getElementById("pcrOptionsList");
-            for (const key in pcrDatabase) {
-                const btn = document.createElement("button");
-                btn.className = `option-item ${key === currentPcrKey ? 'selected' : ''}`;
-                btn.textContent = pcrDatabase[key].shortName;
-                btn.onclick = () => {
-                    currentPcrKey = key;
-                    localStorage.setItem('lab_pcrKey', key);
-                    closeModal('pcrModal');
-                    updateView();
-                };
-                pcrListEl.appendChild(btn);
-            }
 
             const pcrVolListEl = document.getElementById("pcrVolumeOptionsList");
             pcrVolumes.forEach(vol => {
@@ -1043,6 +1055,160 @@
             }, 50);
 
             setupScrollListener();
+            updateView();
+        }
+
+        // 設定をすべて初期状態に戻す関数
+        function resetAllSettings() {
+            if (confirm("すべてのカスタム設定（表示・並び替え・チェック状態など）を初期状態に戻しますか？")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function buildMediaModals() {
+            const mediaListEl = document.getElementById("mediaOptionsList");
+            mediaListEl.innerHTML = "";
+            let visibleList = mediaOrderConfig.filter(m => m.visible);
+            
+            if (!visibleList.map(m => m.key).includes(currentMediaKey) && visibleList.length > 0) {
+                currentMediaKey = visibleList[0].key;
+            }
+
+            visibleList.forEach(mObj => {
+                const key = mObj.key;
+                const media = mediaDatabase[key];
+                if (!media) return;
+                const btn = document.createElement("button");
+                btn.className = `option-item ${key === currentMediaKey ? 'selected' : ''}`;
+                btn.textContent = media.name;
+                btn.onclick = () => {
+                    currentMediaKey = key;
+                    localStorage.setItem('lab_mediaKey', key);
+                    closeModal('mediaModal');
+                    updateView();
+                };
+                mediaListEl.appendChild(btn);
+            });
+
+            const configListEl = document.getElementById("mediaConfigList");
+            configListEl.innerHTML = "";
+            mediaOrderConfig.forEach((mObj, index) => {
+                const media = mediaDatabase[mObj.key];
+                if (!media) return;
+
+                const row = document.createElement("div");
+                row.className = "custom-row";
+                row.innerHTML = `
+                    <div class="custom-row-left">
+                        <span style="font-weight: 600; font-size: 15px; color: var(--text-primary);">${media.name}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="order-btn-group">
+                            <button class="order-btn" onclick="moveMedia(${index}, -1)" ${index === 0 ? 'style="opacity:0.3;pointer-events:none;"' : ''}>▲</button>
+                            <button class="order-btn" onclick="moveMedia(${index}, 1)" ${index === mediaOrderConfig.length - 1 ? 'style="opacity:0.3;pointer-events:none;"' : ''}>▼</button>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" ${mObj.visible ? 'checked' : ''} onchange="toggleMediaVisible('${mObj.key}')">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                `;
+                configListEl.appendChild(row);
+            });
+        }
+
+        function buildPcrModals() {
+            const pcrListEl = document.getElementById("pcrOptionsList");
+            pcrListEl.innerHTML = "";
+            let visibleList = pcrOrderConfig.filter(p => p.visible);
+
+            if (!visibleList.map(p => p.key).includes(currentPcrKey) && visibleList.length > 0) {
+                currentPcrKey = visibleList[0].key;
+            }
+
+            visibleList.forEach(pObj => {
+                const key = pObj.key;
+                const pcr = pcrDatabase[key];
+                if (!pcr) return;
+                const btn = document.createElement("button");
+                btn.className = `option-item ${key === currentPcrKey ? 'selected' : ''}`;
+                btn.textContent = pcr.shortName;
+                btn.onclick = () => {
+                    currentPcrKey = key;
+                    localStorage.setItem('lab_pcrKey', key);
+                    closeModal('pcrModal');
+                    updateView();
+                };
+                pcrListEl.appendChild(btn);
+            });
+
+            const configListEl = document.getElementById("pcrConfigList");
+            configListEl.innerHTML = "";
+            pcrOrderConfig.forEach((pObj, index) => {
+                const pcr = pcrDatabase[pObj.key];
+                if (!pcr) return;
+
+                const row = document.createElement("div");
+                row.className = "custom-row";
+                row.innerHTML = `
+                    <div class="custom-row-left">
+                        <span style="font-weight: 600; font-size: 15px; color: var(--text-primary);">${pcr.shortName}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="order-btn-group">
+                            <button class="order-btn" onclick="movePcr(${index}, -1)" ${index === 0 ? 'style="opacity:0.3;pointer-events:none;"' : ''}>▲</button>
+                            <button class="order-btn" onclick="movePcr(${index}, 1)" ${index === pcrOrderConfig.length - 1 ? 'style="opacity:0.3;pointer-events:none;"' : ''}>▼</button>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" ${pObj.visible ? 'checked' : ''} onchange="togglePcrVisible('${pObj.key}')">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                `;
+                configListEl.appendChild(row);
+            });
+        }
+
+        function toggleMediaVisible(key) {
+            const target = mediaOrderConfig.find(m => m.key === key);
+            if (target) {
+                target.visible = !target.visible;
+                localStorage.setItem('lab_mediaOrderConfig', JSON.stringify(mediaOrderConfig));
+                buildMediaModals();
+                updateView();
+            }
+        }
+
+        function moveMedia(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= mediaOrderConfig.length) return;
+            const temp = mediaOrderConfig[index];
+            mediaOrderConfig[index] = mediaOrderConfig[newIndex];
+            mediaOrderConfig[newIndex] = temp;
+            localStorage.setItem('lab_mediaOrderConfig', JSON.stringify(mediaOrderConfig));
+            buildMediaModals();
+            updateView();
+        }
+
+        function togglePcrVisible(key) {
+            const target = pcrOrderConfig.find(p => p.key === key);
+            if (target) {
+                target.visible = !target.visible;
+                localStorage.setItem('lab_pcrOrderConfig', JSON.stringify(pcrOrderConfig));
+                buildPcrModals();
+                updateView();
+            }
+        }
+
+        function movePcr(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= pcrOrderConfig.length) return;
+            const temp = pcrOrderConfig[index];
+            pcrOrderConfig[index] = pcrOrderConfig[newIndex];
+            pcrOrderConfig[newIndex] = temp;
+            localStorage.setItem('lab_pcrOrderConfig', JSON.stringify(pcrOrderConfig));
+            buildPcrModals();
             updateView();
         }
 
@@ -1122,7 +1288,7 @@
             if (currentViewIndex === 0) {
                 bar.innerHTML = `
                     <button class="trigger-btn" onclick="openModal('mediaModal')">
-                        <span style="font-weight: 700;">${mediaDatabase[currentMediaKey].name}</span>
+                        <span style="font-weight: 700;">${mediaDatabase[currentMediaKey] ? mediaDatabase[currentMediaKey].name : '選択'}</span>
                         <span class="arrow-icon">▾</span>
                     </button>
                     <button class="trigger-btn" onclick="openModal('volumeModal')">
@@ -1185,51 +1351,46 @@
 
             // 1. 培地ビュー更新
             const media = mediaDatabase[currentMediaKey];
-            document.getElementById("displayMediaName").textContent = media.name;
-            document.getElementById("displayVolume").textContent = `${currentVolume} mL`;
+            if (media) {
+                document.getElementById("displayMediaName").textContent = media.name;
+                document.getElementById("displayVolume").textContent = `${currentVolume} mL`;
 
-            if (adviceFeatureEnabled) {
-                mediaAdviceBox.textContent = media.getAdvice(currentVolume);
-                mediaAdviceBox.classList.add("visible");
-            } else {
-                mediaAdviceBox.classList.remove("visible");
+                if (adviceFeatureEnabled) {
+                    mediaAdviceBox.textContent = media.getAdvice(currentVolume);
+                    mediaAdviceBox.classList.add("visible");
+                } else {
+                    mediaAdviceBox.classList.remove("visible");
+                }
+
+                const listContainer = document.getElementById("ingredientList");
+                listContainer.innerHTML = "";
+                const ratio = currentVolume / media.baseVolume;
+
+                media.ingredients.forEach(ing => {
+                    const calcAmount = ing.amount * ratio;
+                    const formatted = calcAmount >= 10 
+                        ? calcAmount.toFixed(1) 
+                        : calcAmount.toFixed(2).replace(/\.?0+$/, "");
+
+                    const li = document.createElement("li");
+                    li.className = "ingredient-item";
+                    li.onclick = () => {
+                        if (checkFeatureEnabled) {
+                            li.classList.toggle('checked');
+                            checkResetButtonState('media');
+                        }
+                    };
+                    li.innerHTML = `
+                        <span class="ing-name">${ing.name}</span>
+                        <div class="ing-amount-wrapper">
+                            <span class="ing-amount">${formatted}</span>
+                            <span class="ing-unit">${ing.unit}</span>
+                        </div>
+                    `;
+                    listContainer.appendChild(li);
+                });
+                checkResetButtonState('media');
             }
-
-            document.querySelectorAll("#mediaOptionsList .option-item").forEach(el => {
-                el.classList.toggle('selected', el.textContent === media.name);
-            });
-            document.querySelectorAll("#volumeOptionsList .option-item").forEach(el => {
-                el.classList.toggle('selected', el.textContent === `${currentVolume} mL`);
-            });
-
-            const listContainer = document.getElementById("ingredientList");
-            listContainer.innerHTML = "";
-            const ratio = currentVolume / media.baseVolume;
-
-            media.ingredients.forEach(ing => {
-                const calcAmount = ing.amount * ratio;
-                const formatted = calcAmount >= 10 
-                    ? calcAmount.toFixed(1) 
-                    : calcAmount.toFixed(2).replace(/\.?0+$/, "");
-
-                const li = document.createElement("li");
-                li.className = "ingredient-item";
-                li.onclick = () => {
-                    if (checkFeatureEnabled) {
-                        li.classList.toggle('checked');
-                        checkResetButtonState('media');
-                    }
-                };
-                li.innerHTML = `
-                    <span class="ing-name">${ing.name}</span>
-                    <div class="ing-amount-wrapper">
-                        <span class="ing-amount">${formatted}</span>
-                        <span class="ing-unit">${ing.unit}</span>
-                    </div>
-                `;
-                listContainer.appendChild(li);
-            });
-            checkResetButtonState('media');
 
             // 2. PCRビュー更新
             const pcr = pcrDatabase[currentPcrKey];
@@ -1358,13 +1519,8 @@
                 });
             }
 
-            document.querySelectorAll("#pcrOptionsList .option-item").forEach(el => {
-                el.classList.toggle('selected', el.textContent === pcr.shortName);
-            });
-            document.querySelectorAll("#pcrVolumeOptionsList .option-item").forEach(el => {
-                el.classList.toggle('selected', el.textContent === `${currentPcrVolume} µL`);
-            });
-
+            buildMediaModals();
+            buildPcrModals();
             updateControlBar();
         }
 
