@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Media Recipe</title>
+    <title>Lab Recipe</title>
     <style>
         :root {
             --bg-color: #08080a;
@@ -35,9 +35,29 @@
             max-width: 460px;
             margin: 0 auto;
             justify-content: space-between;
+            overflow-x: hidden;
         }
 
-        /* 画面上部：メインディスプレイ */
+        /* 画面全体のビューコンテナ（スワイプ切り替え用） */
+        .views-container {
+            display: flex;
+            width: 200%;
+            flex: 1;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-bottom: 20px;
+        }
+
+        .view-panel {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            padding-right: 10px;
+            padding-left: 10px;
+        }
+        .view-panel:first-child { padding-left: 0; }
+        .view-panel:last-child { padding-right: 0; }
+
+        /* メインディスプレイカード */
         .main-display {
             background-color: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -47,7 +67,6 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            margin-bottom: 20px;
         }
 
         .display-header {
@@ -105,6 +124,8 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            overflow-y: auto;
+            max-height: 380px;
         }
 
         .ingredient-item {
@@ -138,6 +159,26 @@
             font-size: 15px;
             color: var(--text-secondary);
             font-weight: 600;
+        }
+
+        /* ページインジケーター（ドット） */
+        .pagination-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: background-color 0.3s;
+        }
+
+        .dot.active {
+            background-color: var(--accent-color);
         }
 
         /* 下部トリガーコントロールバー */
@@ -198,7 +239,6 @@
             pointer-events: auto;
         }
 
-        /* モーダルコンテンツ */
         .modal-content {
             width: 100%;
             max-width: 460px;
@@ -226,7 +266,6 @@
             text-transform: uppercase;
         }
 
-        /* 選択肢リスト */
         .option-list {
             display: flex;
             flex-direction: column;
@@ -267,30 +306,45 @@
         }
     </style>
 </head>
-<body>
+<body id="bodyTag">
 
-    <div class="main-display">
-        <div class="display-header">
-            <div class="media-title-wrapper">
-                <span class="media-eyebrow">Medium</span>
-                <h1 class="media-title" id="displayMediaName">培地名</h1>
+    <div class="views-container" id="viewsContainer">
+        
+        <div class="view-panel">
+            <div class="main-display">
+                <div class="display-header">
+                    <div class="media-title-wrapper">
+                        <span class="media-eyebrow">Medium Recipe</span>
+                        <h1 class="media-title" id="displayMediaName">培地名</h1>
+                    </div>
+                    <span class="volume-badge" id="displayVolume">100 mL</span>
+                </div>
+                <ul class="ingredient-list" id="ingredientList"></ul>
             </div>
-            <span class="volume-badge" id="displayVolume">100 mL</span>
         </div>
-        <ul class="ingredient-list" id="ingredientList">
-            </ul>
+
+        <div class="view-panel">
+            <div class="main-display">
+                <div class="display-header">
+                    <div class="media-title-wrapper">
+                        <span class="media-eyebrow">PCR Master Mix</span>
+                        <h1 class="media-title" id="displayPcrName">PCR酵素</h1>
+                    </div>
+                    <span class="volume-badge" id="displayPcrVolume">50 µL</span>
+                </div>
+                <ul class="ingredient-list" id="pcrIngredientList"></ul>
+            </div>
+        </div>
+
     </div>
 
-    <div class="control-bar">
-        <button class="trigger-btn" onclick="openModal('mediaModal')">
-            <span id="currentMediaLabel" style="font-weight: 700;">培地</span>
-            <span class="arrow-icon">▾</span>
-        </button>
-        <button class="trigger-btn" onclick="openModal('volumeModal')">
-            <span id="currentVolumeLabel" style="font-weight: 700;">容量</span>
-            <span class="arrow-icon">▾</span>
-        </button>
+    <div class="pagination-dots">
+        <div class="dot active" id="dot0"></div>
+        <div class="dot" id="dot1"></div>
     </div>
+
+    <div class="control-bar" id="controlBar">
+        </div>
 
     <div class="modal-overlay" id="mediaModal" onclick="outsideClose(event, 'mediaModal')">
         <div class="modal-content">
@@ -306,7 +360,22 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="pcrModal" onclick="outsideClose(event, 'pcrModal')">
+        <div class="modal-content">
+            <div class="modal-header">PCR酵素を選択</div>
+            <div class="option-list" id="pcrOptionsList"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="pcrVolumeModal" onclick="outsideClose(event, 'pcrVolumeModal')">
+        <div class="modal-content">
+            <div class="modal-header">反応液量を選択</div>
+            <div class="option-list volume-grid-modal" id="pcrVolumeOptionsList"></div>
+        </div>
+    </div>
+
     <script>
+        // 培地データベース (100mL基準)
         const mediaDatabase = {
             "cm": {
                 name: "CM培地",
@@ -350,11 +419,55 @@
             }
         };
 
+        // PCR酵素データベース (50uL反応液あたりの標準的な構成比率を例として定義)
+        const pcrDatabase = {
+            "taq": {
+                name: "Taq ポリメラーゼ",
+                baseVolume: 50,
+                ingredients: [
+                    { name: "10x Buffer", amount: 5.0, unit: "µL" },
+                    { name: "dNTPs (2 mM each)", amount: 5.0, unit: "µL" },
+                    { name: "Forward Primer (10 µM)", amount: 1.0, unit: "µL" },
+                    { name: "Reverse Primer (10 µM)", amount: 1.0, unit: "µL" },
+                    { name: "Taq Polymerase", amount: 0.5, unit: "µL" },
+                    { name: "Template DNA", amount: 1.0, unit: "µL" },
+                    { name: "滅菌水 (dH2O)", amount: 36.5, unit: "µL" }
+                ]
+            },
+            "prime_star": {
+                name: "PrimeSTAR GXL",
+                baseVolume: 50,
+                ingredients: [
+                    { name: "5x PrimeSTAR Buffer", amount: 10.0, unit: "µL" },
+                    { name: "dNTPs (2.5 mM each)", amount: 4.0, unit: "µL" },
+                    { name: "Forward Primer (10 µM)", amount: 1.0, unit: "µL" },
+                    { name: "Reverse Primer (10 µM)", amount: 1.0, unit: "µL" },
+                    { name: "PrimeSTAR GXL DNA Pol.", amount: 1.0, unit: "µL" },
+                    { name: "Template DNA", amount: 1.0, unit: "µL" },
+                    { name: "滅菌水 (dH2O)", amount: 32.0, unit: "µL" }
+                ]
+            }
+        };
+
+        let currentViewIndex = 0; // 0: 培地, 1: PCR
         let currentMediaKey = "cm";
         let currentVolume = 100;
-        const volumes = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
+        const mediaVolumes = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
+
+        let currentPcrKey = "taq";
+        let currentPcrVolume = 50;
+        // 50から250まで10単位
+        const pcrVolumes = [];
+        for(let v = 50; v <= 250; v += 10) {
+            pcrVolumes.push(v);
+        }
+
+        // タッチ・スワイプ管理変数
+        let touchStartX = 0;
+        let touchEndX = 0;
 
         function initApp() {
+            // 培地モーダルリスト構築
             const mediaListEl = document.getElementById("mediaOptionsList");
             for (const key in mediaDatabase) {
                 const btn = document.createElement("button");
@@ -368,8 +481,9 @@
                 mediaListEl.appendChild(btn);
             }
 
+            // 培地容量モーダルリスト構築
             const volListEl = document.getElementById("volumeOptionsList");
-            volumes.forEach(vol => {
+            mediaVolumes.forEach(vol => {
                 const btn = document.createElement("button");
                 btn.className = `option-item ${vol === currentVolume ? 'selected' : ''}`;
                 btn.textContent = `${vol} mL`;
@@ -381,17 +495,111 @@
                 volListEl.appendChild(btn);
             });
 
+            // PCR酵素モーダルリスト構築
+            const pcrListEl = document.getElementById("pcrOptionsList");
+            for (const key in pcrDatabase) {
+                const btn = document.createElement("button");
+                btn.className = `option-item ${key === currentPcrKey ? 'selected' : ''}`;
+                btn.textContent = pcrDatabase[key].name;
+                btn.onclick = () => {
+                    currentPcrKey = key;
+                    closeModal('pcrModal');
+                    updateView();
+                };
+                pcrListEl.appendChild(btn);
+            }
+
+            // PCR反応液量モーダルリスト構築 (50〜250, 10刻み)
+            const pcrVolListEl = document.getElementById("pcrVolumeOptionsList");
+            pcrVolumes.forEach(vol => {
+                const btn = document.createElement("button");
+                btn.className = `option-item ${vol === currentPcrVolume ? 'selected' : ''}`;
+                btn.textContent = `${vol} µL`;
+                btn.onclick = () => {
+                    currentPcrVolume = vol;
+                    closeModal('pcrVolumeModal');
+                    updateView();
+                };
+                pcrVolListEl.appendChild(btn);
+            });
+
+            setupSwipeListeners();
             updateView();
         }
 
-        function updateView() {
-            const media = mediaDatabase[currentMediaKey];
+        // スワイプ機能の実装
+        function setupSwipeListeners() {
+            const container = document.getElementById("viewsContainer");
 
+            container.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, {passive: true});
+
+            container.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, {passive: true});
+        }
+
+        function handleSwipe() {
+            const threshold = 50; // スワイプ判定のしきい値
+            if (touchEndX < touchStartX - threshold) {
+                // 左スワイプ -> PCR画面へ
+                switchToView(1);
+            } else if (touchEndX > touchStartX + threshold) {
+                // 右スワイプ -> 培地画面へ
+                switchToView(0);
+            }
+        }
+
+        function switchToView(index) {
+            currentViewIndex = index;
+            const container = document.getElementById("viewsContainer");
+            container.style.transform = `translateX(-${index * 50}%)`;
+
+            // ドット更新
+            document.getElementById("dot0").classList.toggle('active', index === 0);
+            document.getElementById("dot1").classList.toggle('active', index === 1);
+
+            updateControlBar();
+        }
+
+        function updateControlBar() {
+            const bar = document.getElementById("controlBar");
+            bar.innerHTML = "";
+
+            if (currentViewIndex === 0) {
+                bar.innerHTML = `
+                    <button class="trigger-btn" onclick="openModal('mediaModal')">
+                        <span id="currentMediaLabel" style="font-weight: 700;">${mediaDatabase[currentMediaKey].name}</span>
+                        <span class="arrow-icon">▾</span>
+                    </button>
+                    <button class="trigger-btn" onclick="openModal('volumeModal')">
+                        <span id="currentVolumeLabel" style="font-weight: 700;">${currentVolume} mL</span>
+                        <span class="arrow-icon">▾</span>
+                    </button>
+                `;
+            } else {
+                bar.innerHTML = `
+                    <button class="trigger-btn" onclick="openModal('pcrModal')">
+                        <span id="currentPcrLabel" style="font-weight: 700; font-size: 14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${pcrDatabase[currentPcrKey].name}</span>
+                        <span class="arrow-icon">▾</span>
+                    </button>
+                    <button class="trigger-btn" onclick="openModal('pcrVolumeModal')">
+                        <span id="currentPcrVolumeLabel" style="font-weight: 700;">${currentPcrVolume} µL</span>
+                        <span class="arrow-icon">▾</span>
+                    </button>
+                `;
+            }
+        }
+
+        function updateView() {
+            // 1. 培地ビューの計算・描画
+            const media = mediaDatabase[currentMediaKey];
             document.getElementById("displayMediaName").textContent = media.name;
             document.getElementById("displayVolume").textContent = `${currentVolume} mL`;
-            document.getElementById("currentMediaLabel").textContent = media.name;
-            document.getElementById("currentVolumeLabel").textContent = `${currentVolume} mL`;
 
+            // モーダルの選択状態ハイライト
             document.querySelectorAll("#mediaOptionsList .option-item").forEach(el => {
                 el.classList.toggle('selected', el.textContent === media.name);
             });
@@ -420,6 +628,42 @@
                 `;
                 listContainer.appendChild(li);
             });
+
+            // 2. PCRビューの計算・描画
+            const pcr = pcrDatabase[currentPcrKey];
+            document.getElementById("displayPcrName").textContent = pcr.name;
+            document.getElementById("displayPcrVolume").textContent = `${currentPcrVolume} µL`;
+
+            document.querySelectorAll("#pcrOptionsList .option-item").forEach(el => {
+                el.classList.toggle('selected', el.textContent === pcr.name);
+            });
+            document.querySelectorAll("#pcrVolumeOptionsList .option-item").forEach(el => {
+                el.classList.toggle('selected', el.textContent === `${currentPcrVolume} µL`);
+            });
+
+            const pcrListContainer = document.getElementById("pcrIngredientList");
+            pcrListContainer.innerHTML = "";
+            const pcrRatio = currentPcrVolume / pcr.baseVolume;
+
+            pcr.ingredients.forEach(ing => {
+                const calcAmount = ing.amount * pcrRatio;
+                const formatted = calcAmount >= 10 
+                    ? calcAmount.toFixed(1) 
+                    : calcAmount.toFixed(2).replace(/\.?0+$/, "");
+
+                const li = document.createElement("li");
+                li.className = "ingredient-item";
+                li.innerHTML = `
+                    <span class="ing-name">${ing.name}</span>
+                    <div class="ing-amount-wrapper">
+                        <span class="ing-amount">${formatted}</span>
+                        <span class="ing-unit">${ing.unit}</span>
+                    </div>
+                `;
+                pcrListContainer.appendChild(li);
+            });
+
+            updateControlBar();
         }
 
         function openModal(modalId) {
