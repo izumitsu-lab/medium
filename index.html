@@ -136,7 +136,7 @@
             flex-shrink: 0;
         }
 
-        /* アドバイスコメント表示ボックス */
+        /* アドバイス・コスト表示ボックス */
         .advice-box {
             background-color: rgba(41, 151, 255, 0.08);
             border: 1px solid rgba(41, 151, 255, 0.2);
@@ -151,6 +151,23 @@
             line-height: 1.3;
         }
         .advice-box.visible {
+            display: block;
+        }
+
+        .cost-box {
+            background-color: rgba(52, 199, 89, 0.08);
+            border: 1px solid rgba(52, 199, 89, 0.2);
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #30d158;
+            display: none;
+            flex-shrink: 0;
+            line-height: 1.3;
+        }
+        .cost-box.visible {
             display: block;
         }
 
@@ -678,7 +695,6 @@
             gap: 8px;
         }
 
-        /* 並び替え・カスタム設定用モーダルの行スタイル */
         .custom-row {
             display: flex;
             justify-content: space-between;
@@ -717,6 +733,7 @@
 
     <div class="views-container" id="viewsContainer">
         
+        <!-- 1ページ目：培地ビュー -->
         <div class="view-panel" id="panel0">
             <div class="main-display">
                 <div class="display-header">
@@ -727,6 +744,7 @@
                     <span class="volume-badge" id="displayVolume">100 mL</span>
                 </div>
                 <div class="advice-box" id="mediaAdviceBox"></div>
+                <div class="cost-box" id="mediaCostBox"></div>
                 <div class="list-container-wrapper">
                     <ul class="ingredient-list" id="ingredientList"></ul>
                 </div>
@@ -737,6 +755,7 @@
             </div>
         </div>
 
+        <!-- 2ページ目：PCRビュー -->
         <div class="view-panel" id="panel1">
             <div class="main-display">
                 <div class="display-header">
@@ -751,9 +770,11 @@
                     <button class="mode-btn" id="btnModeCycle" onclick="setPcrMode('cycle')">サイクル条件</button>
                 </div>
                 <div class="advice-box" id="pcrAdviceBox"></div>
+                <div class="cost-box" id="pcrCostBox"></div>
                 <div class="list-container-wrapper">
                     <ul class="ingredient-list" id="pcrIngredientList"></ul>
                     <div class="cycle-container" id="pcrCycleContainer" style="display: none;"></div>
+                    <!-- 酵素の使い分けガイド -->
                     <div class="guide-container" id="pcrGuideContainer" style="display: none;">
                         <div class="guide-card">
                             <span class="guide-title">🧬 プラスミドクローニング（正確性重視）</span>
@@ -776,6 +797,7 @@
             </div>
         </div>
 
+        <!-- 3ページ目：オプションビュー -->
         <div class="view-panel" id="panel2">
             <div class="main-display">
                 <div class="display-header">
@@ -805,6 +827,18 @@
                             <span class="slider"></span>
                         </label>
                     </div>
+                    <!-- コスト表示設定追加（初期値オフ） -->
+                    <div class="option-group">
+                        <div class="option-label-wrapper">
+                            <span class="option-title">コスト（費用）表示</span>
+                            <span class="option-desc">試薬や酵素の概算費用を表示</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="costFeatureToggle" onchange="toggleCostFeature()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <!-- 培地カスタム設定ボタン -->
                     <div class="option-group">
                         <div class="option-label-wrapper">
                             <span class="option-title">培地の表示・並び替え</span>
@@ -812,6 +846,7 @@
                         </div>
                         <button class="option-action-btn" onclick="openModal('mediaConfigModal')">設定する</button>
                     </div>
+                    <!-- PCR酵素カスタム設定ボタン -->
                     <div class="option-group">
                         <div class="option-label-wrapper">
                             <span class="option-title">PCR酵素の表示・並び替え</span>
@@ -819,6 +854,7 @@
                         </div>
                         <button class="option-action-btn" onclick="openModal('pcrConfigModal')">設定する</button>
                     </div>
+                    <!-- 初期状態に戻すボタン -->
                     <div class="option-group">
                         <div class="option-label-wrapper">
                             <span class="option-title">設定の初期化</span>
@@ -840,6 +876,7 @@
 
     <div class="control-bar" id="controlBar"></div>
 
+    <!-- モーダル各種 -->
     <div class="modal-overlay" id="mediaModal" onclick="outsideClose(event, 'mediaModal')">
         <div class="modal-content">
             <div class="modal-header">培地を選択</div>
@@ -868,6 +905,7 @@
         </div>
     </div>
 
+    <!-- 培地カスタム設定用モーダル -->
     <div class="modal-overlay" id="mediaConfigModal" onclick="outsideClose(event, 'mediaConfigModal')">
         <div class="modal-content">
             <div class="modal-header">培地の表示と並び替え</div>
@@ -875,6 +913,7 @@
         </div>
     </div>
 
+    <!-- PCR酵素カスタム設定用モーダル -->
     <div class="modal-overlay" id="pcrConfigModal" onclick="outsideClose(event, 'pcrConfigModal')">
         <div class="modal-content">
             <div class="modal-header">PCR酵素の表示と並び替え</div>
@@ -884,18 +923,58 @@
 
     <script>
         const mediaDatabase = {
-            "cm": { name: "CM培地", baseVolume: 100, getAdvice: (vol) => `💡 55mmシャーレ換算: 約 ${(vol / 6).toFixed(1)} 枚分`, ingredients: [
-                { name: "グルコース", amount: 1.0, unit: "g" }, { name: "Yeast extract", amount: 0.1, unit: "g" }, { name: "Tryptone", amount: 0.1, unit: "g" }, { name: "Solution A", amount: 1.0, unit: "mL" }, { name: "Solution B", amount: 1.0, unit: "mL" }, { name: "寒天", amount: 1.5, unit: "g" }, { name: "蒸留水", amount: 96.4, unit: "mL" }
-            ]},
-            "v30": { name: "V30培地", baseVolume: 100, getAdvice: (vol) => `💡 55mmシャーレ換算: 約 ${(vol / 6).toFixed(1)} 枚分`, ingredients: [
-                { name: "V30ジュース", amount: 16.0, unit: "mL" }, { name: "CaCO3", amount: 0.2, unit: "g" }, { name: "寒天", amount: 1.5, unit: "g" }, { name: "水", amount: 84.0, unit: "mL" }
-            ]},
-            "pda": { name: "PDA培地", baseVolume: 100, getAdvice: (vol) => `💡 55mmシャーレ換算: 約 ${(vol / 6).toFixed(1)} 枚分`, ingredients: [
-                { name: "PDA (粉)", amount: 3.9, unit: "g" }, { name: "水", amount: 100.0, unit: "mL" }
-            ]},
-            "lb": { name: "LB培地", baseVolume: 100, getAdvice: (vol) => `💡 55mmシャーレ換算: 約 ${(vol / 6).toFixed(1)} 枚分`, ingredients: [
-                { name: "LB (粉)", amount: 2.0, unit: "g" }, { name: "寒天", amount: 1.5, unit: "g" }, { name: "水", amount: 100.0, unit: "mL" }
-            ]}
+            "cm": { 
+                name: "CM培地", 
+                baseVolume: 100, 
+                getAdvice: (vol) => `💡 55mmシャーレ換算: 約 ${(vol / 6).toFixed(1)} 枚分`, 
+                calculateCost: (vol) => {
+                    const ratio = vol / 100;
+                    const cost = (1.0 * 4.4 + 0.1 * 16 + 0.1 * 26 + 1.5 * 42) * ratio;
+                    return `💰 概算コスト: 約 ${Math.round(cost)} 円 (${vol} mLあたり)`;
+                },
+                ingredients: [
+                    { name: "グルコース", amount: 1.0, unit: "g" }, { name: "Yeast extract", amount: 0.1, unit: "g" }, { name: "Tryptone", amount: 0.1, unit: "g" }, { name: "Solution A", amount: 1.0, unit: "mL" }, { name: "Solution B", amount: 1.0, unit: "mL" }, { name: "寒天", amount: 1.5, unit: "g" }, { name: "蒸留水", amount: 98.0, unit: "mL" }
+                ]
+            },
+            "v30": { 
+                name: "V30培地", 
+                baseVolume: 100, 
+                getAdvice: (vol) => `💡 55mmシャーレ換算: 約 ${(vol / 6).toFixed(1)} 枚分`, 
+                calculateCost: (vol) => {
+                    const ratio = vol / 100;
+                    const cost = (16.0 * 0.3 + 0.2 * 5.9 + 1.5 * 42) * ratio;
+                    return `💰 概算コスト: 約 ${Math.round(cost)} 円 (${vol} mLあたり)`;
+                },
+                ingredients: [
+                    { name: "V30ジュース", amount: 16.0, unit: "mL" }, { name: "CaCO3", amount: 0.2, unit: "g" }, { name: "寒天", amount: 1.5, unit: "g" }, { name: "水", amount: 84.0, unit: "mL" }
+                ]
+            },
+            "pda": { 
+                name: "PDA培地", 
+                baseVolume: 100, 
+                getAdvice: (vol) => `💡 55mmシャーレ換算: 約 ${(vol / 6).toFixed(1)} 枚分`, 
+                calculateCost: (vol) => {
+                    const ratio = vol / 100;
+                    const cost = (3.9 * 27.17) * ratio;
+                    return `💰 概算コスト: 約 ${Math.round(cost)} 円 (${vol} mLあたり)`;
+                },
+                ingredients: [
+                    { name: "PDA (粉)", amount: 3.9, unit: "g" }, { name: "水", amount: 100.0, unit: "mL" }
+                ]
+            },
+            "lb": { 
+                name: "LB培地", 
+                baseVolume: 100, 
+                getAdvice: (vol) => `💡 55mmシャーレ換算: 約 ${(vol / 6).toFixed(1)} 枚分`, 
+                calculateCost: (vol) => {
+                    const ratio = vol / 100;
+                    const cost = (2.0 * 66 + 1.5 * 42) * ratio;
+                    return `💰 概算コスト: 約 ${Math.round(cost)} 円 (${vol} mLあたり)`;
+                },
+                ingredients: [
+                    { name: "LB (粉)", amount: 2.0, unit: "g" }, { name: "寒天", amount: 1.5, unit: "g" }, { name: "水", amount: 100.0, unit: "mL" }
+                ]
+            }
         };
 
         let mediaOrderConfig = JSON.parse(localStorage.getItem('lab_mediaOrderConfig')) || [
@@ -908,6 +987,10 @@
                 fullName: "ExPremier (Premix)",
                 baseVolume: 50,
                 getAdvice: (vol) => `💡 高成功率を誇るファーストチョイス酵素`,
+                calculateCost: (vol) => {
+                    const cost = (21.4 / 10) * vol;
+                    return `💰 概算コスト: 約 ${Math.round(cost)} 円 (${vol} µLあたり)`;
+                },
                 cycles: [
                     { type: 'single', name: "初期変性", temp: "94 °C", time: "1 min" },
                     { type: 'loop_start', name: "30 Cycles" },
@@ -928,6 +1011,10 @@
                 fullName: "PrimeSTAR MAX (Premix)",
                 baseVolume: 50,
                 getAdvice: (vol) => `💡 最高レベルの正確性、In-Fusion Cloningにベストマッチ`,
+                calculateCost: (vol) => {
+                    const cost = (56.0 / 10) * vol;
+                    return `💰 概算コスト: 約 ${Math.round(cost)} 円 (${vol} µLあたり)`;
+                },
                 cycles: [
                     { type: 'loop_start', name: "30–35 Cycles (通常条件: >200ng)" },
                     { type: 'loop_step', name: "変性", temp: "98 °C", time: "10 sec" },
@@ -953,6 +1040,10 @@
                 fullName: "PrimeSTAR GXL (Premix)",
                 baseVolume: 50,
                 getAdvice: (vol) => `💡 高正確性だがMAXに劣る。GCリッチに強い。`,
+                calculateCost: (vol) => {
+                    const cost = (26.6 / 10) * vol;
+                    return `💰 概算コスト: 約 ${Math.round(cost)} 円 (${vol} µLあたり)`;
+                },
                 cycles: [
                     { type: 'loop_start', name: "30 Cycles" },
                     { type: 'loop_step', name: "変性", temp: "98 °C", time: "10 sec" },
@@ -972,6 +1063,10 @@
                 fullName: "EmeraldAmp (Premix)",
                 baseVolume: 50,
                 getAdvice: (vol) => `💡 コスパ最強。コロニーPCR、ルーチンPCRに。`,
+                calculateCost: (vol) => {
+                    const cost = (16.7 / 10) * vol;
+                    return `💰 概算コスト: 約 ${Math.round(cost)} 円 (${vol} µLあたり)`;
+                },
                 cycles: [
                     { type: 'loop_start', name: "30 Cycles" },
                     { type: 'loop_step', name: "変性", temp: "98 °C", time: "10 sec" },
@@ -1013,10 +1108,14 @@
 
         let checkFeatureEnabled = localStorage.getItem('lab_checkFeature') !== null ? localStorage.getItem('lab_checkFeature') === 'true' : true;
         let adviceFeatureEnabled = localStorage.getItem('lab_adviceFeature') !== null ? localStorage.getItem('lab_adviceFeature') === 'true' : true;
+        
+        // コスト表示の初期値をオフ（false）に設定
+        let costFeatureEnabled = localStorage.getItem('lab_costFeature') !== null ? localStorage.getItem('lab_costFeature') === 'true' : false;
 
         function initApp() {
             document.getElementById("checkFeatureToggle").checked = checkFeatureEnabled;
             document.getElementById("adviceFeatureToggle").checked = adviceFeatureEnabled;
+            document.getElementById("costFeatureToggle").checked = costFeatureEnabled;
 
             buildMediaModals();
             buildPcrModals();
@@ -1058,7 +1157,6 @@
             updateView();
         }
 
-        // 設定をすべて初期状態に戻す関数
         function resetAllSettings() {
             if (confirm("すべてのカスタム設定（表示・並び替え・チェック状態など）を初期状態に戻しますか？")) {
                 localStorage.clear();
@@ -1257,6 +1355,12 @@
             updateView();
         }
 
+        function toggleCostFeature() {
+            costFeatureEnabled = document.getElementById("costFeatureToggle").checked;
+            localStorage.setItem('lab_costFeature', costFeatureEnabled);
+            updateView();
+        }
+
         function setupScrollListener() {
             const container = document.getElementById("viewsContainer");
             let isScrolling;
@@ -1347,7 +1451,9 @@
 
         function updateView() {
             const mediaAdviceBox = document.getElementById("mediaAdviceBox");
+            const mediaCostBox = document.getElementById("mediaCostBox");
             const pcrAdviceBox = document.getElementById("pcrAdviceBox");
+            const pcrCostBox = document.getElementById("pcrCostBox");
 
             // 1. 培地ビュー更新
             const media = mediaDatabase[currentMediaKey];
@@ -1360,6 +1466,13 @@
                     mediaAdviceBox.classList.add("visible");
                 } else {
                     mediaAdviceBox.classList.remove("visible");
+                }
+
+                if (costFeatureEnabled) {
+                    mediaCostBox.textContent = media.calculateCost(currentVolume);
+                    mediaCostBox.classList.add("visible");
+                } else {
+                    mediaCostBox.classList.remove("visible");
                 }
 
                 const listContainer = document.getElementById("ingredientList");
@@ -1414,6 +1527,7 @@
                 } else {
                     pcrAdviceBox.classList.remove("visible");
                 }
+                pcrCostBox.classList.remove("visible");
             } else {
                 modeSwitchEl.style.display = "grid";
                 if (adviceFeatureEnabled) {
@@ -1421,6 +1535,13 @@
                     pcrAdviceBox.classList.add("visible");
                 } else {
                     pcrAdviceBox.classList.remove("visible");
+                }
+
+                if (costFeatureEnabled) {
+                    pcrCostBox.textContent = pcr.calculateCost(currentPcrVolume);
+                    pcrCostBox.classList.add("visible");
+                } else {
+                    pcrCostBox.classList.remove("visible");
                 }
 
                 if (currentPcrMode === 'recipe') {
